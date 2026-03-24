@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Logs
+*.log
+
+# Local dev
+node_modules/
+
+# Exclude all JSON files (could contain exported data or API keys)
+# but keep manifest.json which is required for the PWA
+*.json
+!manifest.json
