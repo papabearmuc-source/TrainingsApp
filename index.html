@@ -389,6 +389,7 @@
       <div class="field"><label>Start muscle (%)</label><input type="number" id="start-muscle" step="0.1"></div>
       <div class="field"><label>Start waist (cm)</label><input type="number" id="start-waist" step="0.5"></div>
       <div class="field"><label>Start VO2Max</label><input type="number" id="start-vo2max" step="0.1"></div>
+      <div class="field"><label>Grundumsatz / BMR (kcal/day)</label><input type="number" id="start-bmr" step="1" placeholder="e.g. 1800"></div>
     </div>
     <div class="btn-row"><button class="btn" onclick="saveStarting()">Save Starting Values</button></div>
   </div>
@@ -458,6 +459,7 @@ const EX_KEY     = 'trackfit_exercises';
 const PLANS_KEY  = 'trackfit_plans';
 const SESS_KEY        = 'trackfit_sessions';
 const ACTIVE_SESS_KEY = 'trackfit_active_session';
+const BMR_KEY         = 'trackfit_bmr';
 
 let sessionActive = false;
 
@@ -1564,13 +1566,21 @@ function renderHistory(){
     // Calorie balance section
     const daySessions=sessions.filter(s=>s.date===e.date);
     const workoutCals=daySessions.reduce((sum,s)=>sum+((s.type==='gym'?s.gymCals:s.calories)||0),0);
-    const totalOut=workoutCals+(e.stepsCals||0);
+    const stepsCals=e.stepsCals||0;
+    const bmr=parseFloat(localStorage.getItem(BMR_KEY))||0;
+    const totalOut=bmr+workoutCals+stepsCals;
     const calsIn=e.calories||0;
     const showBalance=calsIn||totalOut;
+    // Build breakdown string for OUT
+    const outParts=[];
+    if(bmr)outParts.push(`BMR: ${bmr}`);
+    if(workoutCals)outParts.push(`Aktivität: ${workoutCals}`);
+    if(stepsCals)outParts.push(`Schritte: ${stepsCals}`);
+    const outBreakdown=outParts.length>1?` (${outParts.join(' + ')})`:'';
     const balanceHTML=showBalance?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);align-items:center">
       <span style="color:var(--text2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Calories:</span>
       ${calsIn?`<span class="badge" style="background:#1a2e1a;color:#43e97b">🍽️ IN: ${calsIn} kcal</span>`:''}
-      ${totalOut?`<span class="badge" style="background:#2e1a1a;color:#f0932b">🔥 OUT: ${totalOut} kcal${workoutCals&&e.stepsCals?` (${workoutCals} workout + ${e.stepsCals} steps)`:''}</span>`:''}
+      ${totalOut?`<span class="badge" style="background:#2e1a1a;color:#f0932b">🔥 OUT: ${totalOut} kcal${outBreakdown}</span>`:''}
       ${(calsIn&&totalOut)?`<span class="badge" style="background:${calsIn-totalOut>=0?'#1a1a2e':'#2e1a1a'};color:${calsIn-totalOut>=0?'#6c63ff':'#ff4757'}">⚖️ Net: ${calsIn-totalOut>0?'+':''}${calsIn-totalOut} kcal</span>`:''}
     </div>`:'';
     return `<div class="history-item" style="${showBalance?'flex-direction:column;align-items:stretch':''}">
@@ -1796,6 +1806,7 @@ function loadSettings(){
   document.getElementById('start-waist').value=start.waist??'';
   document.getElementById('start-vo2max').value=start.vo2max??'';
   document.getElementById('goal-vo2max').value=goals.vo2max??'';
+  document.getElementById('start-bmr').value=localStorage.getItem(BMR_KEY)??'';
   // AI provider selector — restore saved choice, then update key placeholder + model label
   const savedProvider = localStorage.getItem(AI_PROVIDER_STORE) || 'gemini';
   const provSel = document.getElementById('ai-provider-select');
@@ -1821,6 +1832,9 @@ function saveStarting(){
     weight:pf('start-weight'),bf:pf('start-bf'),muscle:pf('start-muscle'),
     waist:pf('start-waist'),vo2max:pf('start-vo2max'),
   });
+  const bmrVal=parseFloat(document.getElementById('start-bmr').value);
+  if(!isNaN(bmrVal)&&bmrVal>0) localStorage.setItem(BMR_KEY,String(bmrVal));
+  else localStorage.removeItem(BMR_KEY);
   toast('Starting values saved!');
 }
 
