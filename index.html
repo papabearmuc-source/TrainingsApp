@@ -210,12 +210,7 @@
     <h3>New Session</h3>
 
     <div class="section-title">Workout Type</div>
-    <div class="chips" style="margin-bottom:16px">
-      <div class="chip selected sess-type-chip" data-type="gym"        onclick="setSessionType('gym')">🏋️ Gym / Cleverfit</div>
-      <div class="chip sess-type-chip"          data-type="cardio"     onclick="setSessionType('cardio')">🚴 Cardio / Ergometer</div>
-      <div class="chip sess-type-chip"          data-type="basketball" onclick="setSessionType('basketball')">🏀 Basketball</div>
-      <div class="chip sess-type-chip"          data-type="rest"       onclick="setSessionType('rest')">😴 Rest Day</div>
-    </div>
+    <div id="sess-type-chips" class="chips" style="margin-bottom:16px"></div>
 
     <div class="field" style="margin-bottom:14px;max-width:200px">
       <label>Date</label>
@@ -350,16 +345,11 @@
       </div>
     </div>
     <div id="hist-filters-metrics" style="display:flex;gap:10px;flex-wrap:wrap">
-      <div class="field" style="flex:1;min-width:150px"><label>Filter workout</label>
-        <select id="filter-workout" onchange="renderHistory()">
-          <option value="">All</option><option value="gym">Gym</option>
-          <option value="cardio">Cardio</option><option value="basketball">Basketball</option><option value="rest">Rest</option>
-        </select>
-      </div>
       <div class="field"><label>From</label><input type="date" id="filter-from" onchange="renderHistory()"></div>
       <div class="field"><label>To</label><input type="date" id="filter-to" onchange="renderHistory()"></div>
     </div>
-    <div id="hist-filters-sessions" style="display:none;gap:10px;flex-wrap:wrap">
+    <div id="hist-filters-sessions" style="display:none;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div id="sess-type-filter-wrap"></div>
       <div class="field"><label>From</label><input type="date" id="sess-filter-from" onchange="renderHistory()"></div>
       <div class="field"><label>To</label><input type="date" id="sess-filter-to" onchange="renderHistory()"></div>
     </div>
@@ -392,6 +382,16 @@
       <div class="field"><label>Grundumsatz / BMR (kcal/day)</label><input type="number" id="start-bmr" step="1" placeholder="e.g. 1800"></div>
     </div>
     <div class="btn-row"><button class="btn" onclick="saveStarting()">Save Starting Values</button></div>
+  </div>
+  <div class="card">
+    <h3>Workout Types</h3>
+    <div id="workout-types-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+    <div class="section-title" style="margin-top:4px">Add New Type</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <div class="field" style="width:72px"><label>Icon</label><input type="text" id="wtype-icon" placeholder="🏃" maxlength="4" style="font-size:18px;text-align:center"></div>
+      <div class="field" style="flex:1;min-width:140px"><label>Name</label><input type="text" id="wtype-name" placeholder="e.g. Hiking"></div>
+      <button class="btn btn-sm" id="wtype-add-btn" style="margin-bottom:1px">+ Add</button>
+    </div>
   </div>
   <div class="card">
     <h3>AI Coach</h3>
@@ -459,7 +459,15 @@ const EX_KEY     = 'trackfit_exercises';
 const PLANS_KEY  = 'trackfit_plans';
 const SESS_KEY        = 'trackfit_sessions';
 const ACTIVE_SESS_KEY = 'trackfit_active_session';
-const BMR_KEY         = 'trackfit_bmr';
+const BMR_KEY             = 'trackfit_bmr';
+const WORKOUT_TYPES_KEY   = 'trackfit_workout_types';
+const BUILTIN_TYPES       = ['gym','rest'];
+const DEFAULT_WORKOUT_TYPES = [
+  {id:'gym',        label:'Gym / Cleverfit',    icon:'🏋️'},
+  {id:'cardio',     label:'Cardio / Ergometer', icon:'🚴'},
+  {id:'basketball', label:'Basketball',          icon:'🏀'},
+  {id:'rest',       label:'Rest Day',            icon:'😴'},
+];
 
 let sessionActive = false;
 
@@ -474,7 +482,11 @@ const getGoals    = ()=>get(GOALS_KEY,{});
 const getStart    = ()=>get(START_KEY,{});
 const getExercises= ()=>get(EX_KEY,null)??initExercises();
 const getPlans    = ()=>get(PLANS_KEY,[]);
-const getSessions = ()=>get(SESS_KEY,[]);
+const getSessions     = ()=>get(SESS_KEY,[]);
+function getWorkoutTypes(){
+  const stored=get(WORKOUT_TYPES_KEY,null);
+  return(stored&&stored.length)?stored:DEFAULT_WORKOUT_TYPES.map(t=>({...t}));
+}
 
 function initExercises(){
   const ex=[
@@ -747,6 +759,7 @@ function getLastExerciseData(exName){
 
 function getLastCardioData(type){
   const sessions=getSessions();
+  const typeLabel=getWorkoutTypes().find(t=>t.id===type)?.label||type;
   for(let i=sessions.length-1;i>=0;i--){
     const s=sessions[i];
     if(s.type!==type)continue;
@@ -755,22 +768,37 @@ function getLastCardioData(type){
     if(s.avgHR)   parts.push(`${s.avgHR} bpm`);
     if(s.calories)parts.push(`${s.calories} kcal`);
     if(!parts.length)continue;
-    const label=type==='cardio'?'Ergometer':'Basketball';
     const date=s.date?s.date.slice(5):'';
-    return`Last ${label}: ${parts.join(' | ')} (${date})`;
+    return`Last ${typeLabel}: ${parts.join(' | ')} (${date})`;
   }
   return null;
 }
 // ────────────────────────────────────────────────────────────────────────────
 
+function renderWorkoutTypeChips(){
+  const container=document.getElementById('sess-type-chips');
+  if(!container)return;
+  const types=getWorkoutTypes();
+  const cur=currentSession.type||'gym';
+  container.innerHTML=types.map(t=>
+    `<div class="chip sess-type-chip${t.id===cur?' selected':''}" data-type="${escHtml(t.id)}">${t.icon} ${escHtml(t.label)}</div>`
+  ).join('');
+  container.querySelectorAll('.sess-type-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>setSessionType(chip.dataset.type));
+  });
+}
+
 function setSessionType(type){
   currentSession.type=type;
   document.querySelectorAll('.sess-type-chip').forEach(c=>c.classList.toggle('selected',c.dataset.type===type));
-  document.getElementById('sess-gym-section').style.display    =(type==='gym')                             ?'block':'none';
-  document.getElementById('sess-cardio-section').style.display =(type==='cardio'||type==='basketball')     ?'block':'none';
-  document.getElementById('sess-rest-section').style.display   =(type==='rest')                            ?'block':'none';
-  // Inject last-session reference for cardio/basketball
-  if(type==='cardio'||type==='basketball'){
+  const isGym  = type==='gym';
+  const isRest = type==='rest';
+  const isCardioLike = !isGym && !isRest;
+  document.getElementById('sess-gym-section').style.display    = isGym         ?'block':'none';
+  document.getElementById('sess-cardio-section').style.display = isCardioLike  ?'block':'none';
+  document.getElementById('sess-rest-section').style.display   = isRest        ?'block':'none';
+  // Inject last-session reference for cardio-like types
+  if(isCardioLike){
     const ref=document.getElementById('sess-last-cardio-ref');
     if(ref){
       const data=getLastCardioData(type);
@@ -802,6 +830,7 @@ function renderWorkoutPage(){
   document.getElementById('sess-gym-duration').value=currentSession.gymDuration||'';
   document.getElementById('sess-gym-avghr').value=currentSession.gymAvgHR||'';
   document.getElementById('sess-gym-cals').value=currentSession.gymCals||'';
+  renderWorkoutTypeChips();
   setSessionType(currentSession.type||'gym');
   populatePlanDaySelect();
   populateExPicker();
@@ -1524,6 +1553,11 @@ function switchHistTab(el){
   histTab=el.dataset.hist;
   document.getElementById('hist-filters-metrics').style.display=histTab==='metrics'?'flex':'none';
   document.getElementById('hist-filters-sessions').style.display=histTab==='sessions'?'flex':'none';
+  // Rebuild type filter select when switching to sessions (picks up custom types)
+  if(histTab==='sessions'){
+    const wrap=document.getElementById('sess-type-filter-wrap');
+    if(wrap)wrap.innerHTML='';
+  }
   renderHistory();
 }
 
@@ -1531,11 +1565,9 @@ function renderHistory(){
   if(histTab==='sessions'){renderSessionHistory();return}
   const entries=getEntries().slice().reverse();
   const sessions=getSessions();
-  const wF=document.getElementById('filter-workout').value;
   const frF=document.getElementById('filter-from').value;
   const toF=document.getElementById('filter-to').value;
   const filtered=entries.filter(e=>{
-    if(wF&&!e.workouts?.includes(wF))return false;
     if(frF&&e.date<frF)return false;
     if(toF&&e.date>toF)return false;
     return true;
@@ -1592,18 +1624,35 @@ function renderHistory(){
 }
 
 function renderSessionHistory(){
+  // Populate type filter select if not yet done
+  const wrap=document.getElementById('sess-type-filter-wrap');
+  if(wrap&&!wrap.querySelector('select')){
+    const types=getWorkoutTypes();
+    const sel=document.createElement('div');
+    sel.className='field';
+    sel.style.minWidth='150px';
+    sel.innerHTML=`<label>Filter type</label><select id="sess-filter-type" onchange="renderHistory()">
+      <option value="">All types</option>
+      ${types.map(t=>`<option value="${escHtml(t.id)}">${t.icon} ${escHtml(t.label)}</option>`).join('')}
+    </select>`;
+    wrap.appendChild(sel);
+  }
   const sessions=getSessions().slice().reverse();
   const frF=document.getElementById('sess-filter-from').value;
   const toF=document.getElementById('sess-filter-to').value;
+  const tF=document.getElementById('sess-filter-type')?.value||'';
   const filtered=sessions.filter(s=>{
+    if(tF&&s.type!==tF)return false;
     if(frF&&s.date<frF)return false;
     if(toF&&s.date>toF)return false;
     return true;
   });
-  const typeIcon={gym:'🏋️',cardio:'🚴',basketball:'🏀',rest:'😴'};
+  const types=getWorkoutTypes();
+  const typeMap=Object.fromEntries(types.map(t=>[t.id,t]));
   document.getElementById('history-list').innerHTML=filtered.length?filtered.map(s=>{
     const type=s.type||'gym';
-    const icon=typeIcon[type]||'🏋️';
+    const tDef=typeMap[type]||{icon:'🏃',label:type};
+    const icon=tDef.icon;
     const exHTML=s.exercises.map(ex=>{
       const setsStr=ex.sets.map((st,i)=>`<span class="tag">${i+1}: ${st.reps||'?'}×${st.weight||'?'}kg${st.comment?' – '+st.comment:''}</span>`).join('');
       return `<div style="margin-bottom:8px"><span style="font-weight:600">${ex.name}</span>${ex.comment?` <span style="color:var(--text2);font-size:12px">— ${ex.comment}</span>`:''}<div style="margin-top:4px">${setsStr}</div></div>`;
@@ -1613,7 +1662,7 @@ function renderSessionHistory(){
       if(s.gymDuration) summParts.push(`<span class="tag">${s.gymDuration} min</span>`);
       if(s.gymAvgHR)    summParts.push(`<span class="tag">❤️ ${s.gymAvgHR} bpm</span>`);
       if(s.gymCals)     summParts.push(`<span class="tag">🔥 ${s.gymCals} kcal</span>`);
-    }else if(type==='cardio'||type==='basketball'){
+    }else if(type!=='rest'){
       if(s.duration)  summParts.push(`<span class="tag">${s.duration} min</span>`);
       if(s.avgHR)     summParts.push(`<span class="tag">❤️ ${s.avgHR} bpm</span>`);
       if(s.calories)  summParts.push(`<span class="tag">🔥 ${s.calories} kcal</span>`);
@@ -1793,6 +1842,84 @@ async function askAICoach(){
 // ════════════════════════════════════════════════════════
 // Settings
 // ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+// Workout Types Settings
+// ════════════════════════════════════════════════════════
+function renderWorkoutTypesSettings(){
+  const container=document.getElementById('workout-types-list');
+  if(!container)return;
+  const types=getWorkoutTypes();
+  container.innerHTML='';
+  types.forEach((t,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px';
+    row.innerHTML=`
+      <input type="text" value="${escHtml(t.icon)}" maxlength="4" style="width:44px;text-align:center;font-size:18px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px;outline:none" data-idx="${i}" data-field="icon">
+      <input type="text" value="${escHtml(t.label)}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;padding:5px 9px;outline:none" data-idx="${i}" data-field="label">
+      <button class="btn btn-sm" data-save="${i}" style="background:var(--surface);border:1px solid var(--border);color:var(--text)">Save</button>
+      ${BUILTIN_TYPES.includes(t.id)?`<span style="color:var(--text2);font-size:18px;padding:0 4px" title="Built-in type">🔒</span>`:`<button class="btn btn-sm btn-danger" data-del="${i}">✕</button>`}
+    `;
+    container.appendChild(row);
+  });
+  // Wire up Save buttons
+  container.querySelectorAll('[data-save]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const idx=parseInt(btn.dataset.save);
+      const inputs=container.querySelectorAll(`[data-idx="${idx}"]`);
+      const newIcon =inputs[0]?.value.trim()||'🏃';
+      const newLabel=inputs[1]?.value.trim();
+      if(!newLabel){toast('Name darf nicht leer sein','var(--orange)');return}
+      const types=getWorkoutTypes();
+      types[idx]={...types[idx],icon:newIcon,label:newLabel};
+      set(WORKOUT_TYPES_KEY,types);
+      toast('Gespeichert!');
+      renderWorkoutTypesSettings();
+    });
+  });
+  // Wire up Delete buttons
+  container.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const idx=parseInt(btn.dataset.del);
+      const types=getWorkoutTypes();
+      const t=types[idx];
+      openModal(`<h2 style="margin-bottom:12px">Delete "${t.label}"?</h2>
+        <p style="color:var(--text2);margin-bottom:20px">Previously logged sessions keep their data.</p>
+        <div class="btn-row">
+          <button id="modal-del-wt-confirm" class="btn btn-danger">Delete</button>
+          <button id="modal-del-wt-cancel" class="btn btn-secondary">Cancel</button>
+        </div>`);
+      document.getElementById('modal-del-wt-cancel').addEventListener('click',closeModal);
+      document.getElementById('modal-del-wt-confirm').addEventListener('click',()=>{
+        const types=getWorkoutTypes();
+        types.splice(idx,1);
+        set(WORKOUT_TYPES_KEY,types);
+        closeModal();toast('Gelöscht','var(--red)');
+        renderWorkoutTypesSettings();
+      });
+    });
+  });
+  // Wire up Add button (once)
+  const addBtn=document.getElementById('wtype-add-btn');
+  if(addBtn&&!addBtn._wired){
+    addBtn._wired=true;
+    addBtn.addEventListener('click',addWorkoutType);
+  }
+}
+
+function addWorkoutType(){
+  const icon =document.getElementById('wtype-icon').value.trim()||'🏃';
+  const label=document.getElementById('wtype-name').value.trim();
+  if(!label){toast('Bitte einen Namen eingeben','var(--orange)');return}
+  const types=getWorkoutTypes();
+  const id='custom_'+Date.now();
+  types.push({id,icon,label});
+  set(WORKOUT_TYPES_KEY,types);
+  document.getElementById('wtype-icon').value='';
+  document.getElementById('wtype-name').value='';
+  toast('Workout-Typ hinzugefügt!');
+  renderWorkoutTypesSettings();
+}
+
 function loadSettings(){
   const goals=getGoals(),start=getStart();
   document.getElementById('goal-weight').value=goals.weight??'';
@@ -1807,6 +1934,7 @@ function loadSettings(){
   document.getElementById('start-vo2max').value=start.vo2max??'';
   document.getElementById('goal-vo2max').value=goals.vo2max??'';
   document.getElementById('start-bmr').value=localStorage.getItem(BMR_KEY)??'';
+  renderWorkoutTypesSettings();
   // AI provider selector — restore saved choice, then update key placeholder + model label
   const savedProvider = localStorage.getItem(AI_PROVIDER_STORE) || 'gemini';
   const provSel = document.getElementById('ai-provider-select');
