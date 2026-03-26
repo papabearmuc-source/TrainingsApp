@@ -183,9 +183,9 @@
       <div class="field"><label>Calories (kcal)</label><input type="number" id="log-calories" step="1"></div>
     </div>
     <div class="section-title">Steps</div>
-    <div class="form-grid">
-      <div class="field"><label>Steps today</label><input type="number" id="log-steps" step="100" placeholder="10000"></div>
-      <div class="field"><label>Steps calories burned (kcal)</label><input type="number" id="log-stepcals" step="1" placeholder="300"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end">
+      <div class="field" style="min-width:180px"><label>Steps today</label><input type="number" id="log-steps" step="100" placeholder="10000"></div>
+      <div id="stepcals-display" style="padding-bottom:9px;color:var(--text2);font-size:13px"></div>
     </div>
     <div class="section-title">Notes</div>
     <div class="form-grid" style="grid-template-columns:1fr">
@@ -379,9 +379,10 @@
       <div class="field"><label>Start muscle (%)</label><input type="number" id="start-muscle" step="0.1"></div>
       <div class="field"><label>Start waist (cm)</label><input type="number" id="start-waist" step="0.5"></div>
       <div class="field"><label>Start VO2Max</label><input type="number" id="start-vo2max" step="0.1"></div>
-      <div class="field"><label>Grundumsatz / BMR (kcal/day)</label><input type="number" id="start-bmr" step="1" placeholder="e.g. 1800"></div>
     </div>
     <div class="btn-row"><button class="btn" onclick="saveStarting()">Save Starting Values</button></div>
+    <div class="section-title" style="margin-top:18px">Grundumsatz / BMR <span style="font-weight:400;text-transform:none;font-size:11px">(Katch-McArdle, automatisch)</span></div>
+    <div id="bmr-calc-display" style="padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px"></div>
   </div>
   <div class="card">
     <h3>Workout Types</h3>
@@ -555,20 +556,22 @@ function prefillForDate(date){
   const entry=getEntries().find(e=>e.date===date);
   const fieldMap={weight:'log-weight',bf:'log-bf',muscle:'log-muscle',waist:'log-waist',
     vo2max:'log-vo2max',protein:'log-protein',carbs:'log-carbs',calories:'log-calories',
-    steps:'log-steps',stepsCals:'log-stepcals'};
+    steps:'log-steps'};
   Object.values(fieldMap).forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('log-notes').value='';
   if(entry){
     Object.entries(fieldMap).forEach(([field,id])=>{if(entry[field]!=null)document.getElementById(id).value=entry[field];});
     if(entry.notes)document.getElementById('log-notes').value=entry.notes;
   }
+  calcStepCalsDisplay();
 }
 prefillForDate(today());
 
 function clearForm(){
   document.getElementById('log-date').value=today();
-  ['log-weight','log-bf','log-muscle','log-waist','log-vo2max','log-protein','log-carbs','log-calories','log-steps','log-stepcals','log-notes']
+  ['log-weight','log-bf','log-muscle','log-waist','log-vo2max','log-protein','log-carbs','log-calories','log-steps','log-notes']
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  calcStepCalsDisplay();
 }
 
 function saveEntry(){
@@ -581,18 +584,25 @@ function saveEntry(){
     const e=entries[idx];
     const fieldMap={weight:'log-weight',bf:'log-bf',muscle:'log-muscle',waist:'log-waist',
       vo2max:'log-vo2max',protein:'log-protein',carbs:'log-carbs',calories:'log-calories',
-      steps:'log-steps',stepsCals:'log-stepcals'};
+      steps:'log-steps'};
     Object.entries(fieldMap).forEach(([field,id])=>{const v=parseOptFloat(id);if(v!=null)e[field]=v;});
+    // Auto-calculate step calories
+    const stepsV=e.steps,wV=e.weight??getLatestWeight();
+    if(stepsV&&wV)e.stepsCals=Math.round(stepsV*wV*0.0005);
     const notes=document.getElementById('log-notes').value.trim();
     if(notes)e.notes=notes;
     entries[idx]=e;
   }else{
+    const wParsed=parseOptFloat('log-weight');
+    const sParsed=parseOptFloat('log-steps');
+    const wForCals=wParsed??getLatestWeight();
     entries.push({id:Date.now(),date,
-      weight:parseOptFloat('log-weight'),bf:parseOptFloat('log-bf'),
+      weight:wParsed,bf:parseOptFloat('log-bf'),
       muscle:parseOptFloat('log-muscle'),waist:parseOptFloat('log-waist'),
       vo2max:parseOptFloat('log-vo2max'),protein:parseOptFloat('log-protein'),
       carbs:parseOptFloat('log-carbs'),calories:parseOptFloat('log-calories'),
-      steps:parseOptFloat('log-steps'),stepsCals:parseOptFloat('log-stepcals'),
+      steps:sParsed,
+      stepsCals:(sParsed&&wForCals)?Math.round(sParsed*wForCals*0.0005):null,
       notes:document.getElementById('log-notes').value.trim()});
   }
   entries.sort((a,b)=>a.date.localeCompare(b.date));
@@ -1599,7 +1609,7 @@ function renderHistory(){
     const daySessions=sessions.filter(s=>s.date===e.date);
     const workoutCals=daySessions.reduce((sum,s)=>sum+((s.type==='gym'?s.gymCals:s.calories)||0),0);
     const stepsCals=e.stepsCals||0;
-    const bmr=parseFloat(localStorage.getItem(BMR_KEY))||0;
+    const bmr=calcBMR()?.bmr||0;
     const totalOut=bmr+workoutCals+stepsCals;
     const calsIn=e.calories||0;
     const showBalance=calsIn||totalOut;
@@ -1920,6 +1930,53 @@ function addWorkoutType(){
   renderWorkoutTypesSettings();
 }
 
+function calcBMR(){
+  const entries=getEntries();
+  for(let i=entries.length-1;i>=0;i--){
+    const e=entries[i];
+    if(e.weight!=null&&e.bf!=null){
+      const lbm=Math.round(e.weight*(1-e.bf/100)*10)/10;
+      const bmr=Math.round(370+21.6*lbm);
+      return{bmr,lbm,weight:e.weight,bf:e.bf,date:e.date};
+    }
+  }
+  return null;
+}
+
+function renderBMRDisplay(){
+  const el=document.getElementById('bmr-calc-display');
+  if(!el)return;
+  const d=calcBMR();
+  if(!d){
+    el.innerHTML='<span style="color:var(--text2);font-size:13px">— Bitte Gewicht und Körperfett im Body Log erfassen</span>';
+    return;
+  }
+  el.innerHTML=`
+    <div style="font-size:24px;font-weight:700;color:var(--accent);margin-bottom:6px">${d.bmr} kcal/Tag</div>
+    <div style="color:var(--text2);font-size:12px;line-height:1.7">
+      LBM = ${d.weight} kg × (1 − ${d.bf}%) = <strong style="color:var(--text)">${d.lbm} kg</strong><br>
+      BMR = 370 + 21,6 × ${d.lbm} = <strong style="color:var(--text)">${d.bmr} kcal</strong><br>
+      <span style="font-size:11px;color:var(--text2)">Basierend auf Eintrag vom ${d.date}</span>
+    </div>`;
+}
+
+function getLatestWeight(){
+  const entries=getEntries();
+  for(let i=entries.length-1;i>=0;i--){if(entries[i].weight!=null)return entries[i].weight;}
+  return null;
+}
+
+function calcStepCalsDisplay(){
+  const steps=parseFloat(document.getElementById('log-steps')?.value)||0;
+  const wInput=parseFloat(document.getElementById('log-weight')?.value);
+  const weight=isNaN(wInput)?getLatestWeight():wInput;
+  const el=document.getElementById('stepcals-display');
+  if(!el)return;
+  if(!steps||!weight){el.textContent='';return;}
+  const cals=Math.round(steps*weight*0.0005);
+  el.innerHTML=`≈ <strong style="color:var(--text)">${cals} kcal</strong> verbrannt (${steps.toLocaleString()} × ${weight} × 0,0005)`;
+}
+
 function loadSettings(){
   const goals=getGoals(),start=getStart();
   document.getElementById('goal-weight').value=goals.weight??'';
@@ -1933,7 +1990,7 @@ function loadSettings(){
   document.getElementById('start-waist').value=start.waist??'';
   document.getElementById('start-vo2max').value=start.vo2max??'';
   document.getElementById('goal-vo2max').value=goals.vo2max??'';
-  document.getElementById('start-bmr').value=localStorage.getItem(BMR_KEY)??'';
+  renderBMRDisplay();
   renderWorkoutTypesSettings();
   // AI provider selector — restore saved choice, then update key placeholder + model label
   const savedProvider = localStorage.getItem(AI_PROVIDER_STORE) || 'gemini';
@@ -1960,10 +2017,8 @@ function saveStarting(){
     weight:pf('start-weight'),bf:pf('start-bf'),muscle:pf('start-muscle'),
     waist:pf('start-waist'),vo2max:pf('start-vo2max'),
   });
-  const bmrVal=parseFloat(document.getElementById('start-bmr').value);
-  if(!isNaN(bmrVal)&&bmrVal>0) localStorage.setItem(BMR_KEY,String(bmrVal));
-  else localStorage.removeItem(BMR_KEY);
   toast('Starting values saved!');
+  renderBMRDisplay();
 }
 
 // Build export payload — API keys, tokens, and provider settings are
@@ -2126,6 +2181,11 @@ window.addEventListener('resize',()=>{
 // Delegated input listener on workout page for active-session auto-save
 document.getElementById('page-workout').addEventListener('input',function(){
   autoSaveActive();
+});
+
+// Step calories live calculation
+['log-steps','log-weight'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input',calcStepCalsDisplay);
 });
 </script>
 <script>
