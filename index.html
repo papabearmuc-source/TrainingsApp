@@ -180,6 +180,7 @@
       <div class="field"><label>Muscle (%)</label><input type="number" id="log-muscle" step="0.1" placeholder="e.g. 40"></div>
       <div class="field"><label>Waist (cm)</label><input type="number" id="log-waist" step="0.5" placeholder="e.g. 85"></div>
       <div class="field"><label>VO2Max (ml/kg/min)</label><input type="number" id="log-vo2max" step="0.1" placeholder="42.5"></div>
+      <div class="field"><label>Resting HR (bpm)</label><input type="number" id="log-resting-hr" step="1" placeholder="e.g. 55" min="30" max="120"></div>
     </div>
     <div class="section-title">Nutrition</div>
     <div class="form-grid">
@@ -566,7 +567,7 @@ function parseOptFloat(id){const v=parseFloat(document.getElementById(id).value)
 function prefillForDate(date){
   const entry=getEntries().find(e=>e.date===date);
   const fieldMap={weight:'log-weight',bf:'log-bf',muscle:'log-muscle',waist:'log-waist',
-    vo2max:'log-vo2max',protein:'log-protein',carbs:'log-carbs',calories:'log-calories',
+    vo2max:'log-vo2max',restingHR:'log-resting-hr',protein:'log-protein',carbs:'log-carbs',calories:'log-calories',
     steps:'log-steps'};
   Object.values(fieldMap).forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('log-notes').value='';
@@ -580,7 +581,7 @@ prefillForDate(today());
 
 function clearForm(){
   document.getElementById('log-date').value=today();
-  ['log-weight','log-bf','log-muscle','log-waist','log-vo2max','log-protein','log-carbs','log-calories','log-steps','log-notes']
+  ['log-weight','log-bf','log-muscle','log-waist','log-vo2max','log-resting-hr','log-protein','log-carbs','log-calories','log-steps','log-notes']
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
   calcStepCalsDisplay();
 }
@@ -594,7 +595,7 @@ function saveEntry(){
     // Merge: only overwrite fields that are explicitly filled; leave blank fields unchanged
     const e=entries[idx];
     const fieldMap={weight:'log-weight',bf:'log-bf',muscle:'log-muscle',waist:'log-waist',
-      vo2max:'log-vo2max',protein:'log-protein',carbs:'log-carbs',calories:'log-calories',
+      vo2max:'log-vo2max',restingHR:'log-resting-hr',protein:'log-protein',carbs:'log-carbs',calories:'log-calories',
       steps:'log-steps'};
     Object.entries(fieldMap).forEach(([field,id])=>{const v=parseOptFloat(id);if(v!=null)e[field]=v;});
     // Auto-calculate step calories
@@ -610,7 +611,8 @@ function saveEntry(){
     entries.push({id:Date.now(),date,
       weight:wParsed,bf:parseOptFloat('log-bf'),
       muscle:parseOptFloat('log-muscle'),waist:parseOptFloat('log-waist'),
-      vo2max:parseOptFloat('log-vo2max'),protein:parseOptFloat('log-protein'),
+      vo2max:parseOptFloat('log-vo2max'),restingHR:parseOptFloat('log-resting-hr'),
+      protein:parseOptFloat('log-protein'),
       carbs:parseOptFloat('log-carbs'),calories:parseOptFloat('log-calories'),
       steps:sParsed,
       stepsCals:(sParsed&&wForCals)?Math.round(sParsed*wForCals*0.0005):null,
@@ -1983,21 +1985,23 @@ function calcLongevityScore(){
     calcKPIScore(latest.vo2max,goals.vo2max,start.vo2max,false),
   ];
   const bodyScore=Math.round(kpis.reduce((s,v)=>s+v,0)/kpis.length);
-  // Consistency: rolling 4-week average
+  // Consistency: rolling average of available weeks (max 4)
   const now=new Date();
+  const todayStr2=today();
   const mondayOff=(now.getDay()+6)%7;
   const weeklyRatios=[];
   for(let w=0;w<4;w++){
     const ws=new Date(now);ws.setDate(now.getDate()-mondayOff-w*7);
     const we=new Date(ws);we.setDate(ws.getDate()+6);
     const wsStr=ws.toISOString().slice(0,10),weStr=we.toISOString().slice(0,10);
+    if(wsStr>todayStr2)continue;
     const wS=sessions.filter(s=>s.date>=wsStr&&s.date<=weStr);
     const done=wS.filter(s=>!s.type||s.type==='gym').length
               +wS.filter(s=>s.type==='cardio').length
               +wS.filter(s=>s.type==='basketball').length;
     weeklyRatios.push(Math.min(1,done/6));
   }
-  const consistencyScore=Math.round(weeklyRatios.reduce((s,v)=>s+v,0)/4*100);
+  const consistencyScore=weeklyRatios.length?Math.round(weeklyRatios.reduce((s,v)=>s+v,0)/weeklyRatios.length*100):0;
   // Nutrition: last 28 days
   const proteinGoal=goals.protein||150;
   const last28=Array.from({length:28},(_,i)=>{const d=new Date();d.setDate(d.getDate()-i);return d.toISOString().slice(0,10)});
@@ -2011,49 +2015,58 @@ function calcBioAge(){
   const entries=getEntries(),sessions=getSessions();
   const byVal=parseInt(localStorage.getItem(BIRTH_YEAR_KEY));
   const chronoAge=byVal&&byVal>1920?new Date().getFullYear()-byVal:40;
+  // Latest body metrics
   const latest={};
   for(const e of entries){
-    if(e.bf!=null)latest.bf=e.bf;if(e.muscle!=null)latest.muscle=e.muscle;
+    if(e.bf!=null)latest.bf=e.bf;
+    if(e.muscle!=null)latest.muscle=e.muscle;
     if(e.vo2max!=null)latest.vo2max=e.vo2max;
   }
-  // Average training HR from last 28 days
-  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-28);
-  const cutStr=cutoff.toISOString().slice(0,10);
-  const hrs=sessions.filter(s=>s.date>=cutStr).map(s=>s.gymAvgHR||s.avgHR).filter(Boolean);
-  const avgHR=hrs.length?Math.round(hrs.reduce((s,v)=>s+v,0)/hrs.length):null;
-  // Consistency last 4 weeks (reuse same logic)
+  // Most recent resting HR from body log
+  let restingHR=null,restingHRDate=null;
+  for(let i=entries.length-1;i>=0;i--){
+    if(entries[i].restingHR!=null){
+      restingHR=entries[i].restingHR;
+      restingHRDate=entries[i].date;
+      break;
+    }
+  }
+  // Consistency: rolling available weeks (max 4), skip weeks not yet started
   const now=new Date();
+  const todayStr=today();
   const mondayOff=(now.getDay()+6)%7;
-  let totalDone=0;
+  let totalDone=0,startedWeeks=0;
   for(let w=0;w<4;w++){
     const ws=new Date(now);ws.setDate(now.getDate()-mondayOff-w*7);
     const we=new Date(ws);we.setDate(ws.getDate()+6);
     const wsStr=ws.toISOString().slice(0,10),weStr=we.toISOString().slice(0,10);
+    if(wsStr>todayStr)continue;
+    startedWeeks++;
     const wS=sessions.filter(s=>s.date>=wsStr&&s.date<=weStr);
     totalDone+=wS.filter(s=>!s.type||s.type==='gym').length
               +wS.filter(s=>s.type==='cardio').length
               +wS.filter(s=>s.type==='basketball').length;
   }
-  const consistencyPct=Math.min(100,Math.round(totalDone/24*100));
-  // Components: [name, weight, value, avg_ref, excellent_ref, lower_is_better, unit]
+  const consistencyPct=startedWeeks>0?Math.min(100,Math.round(totalDone/(startedWeeks*6)*100)):0;
+  // Components: [name, weight, value, avg_ref, excellent_ref, lower_is_better, unit, sourceDate]
   const defs=[
-    ['VO2Max',       0.30,latest.vo2max,  40,  50, false,'ml/kg/min'],
-    ['Körperfett',   0.20,latest.bf,      22,14.5, true, '%'],
-    ['Trainings-HR', 0.20,avgHR,          72,  52, true, 'bpm'],
-    ['Muskelmasse',  0.15,latest.muscle,  35,  40, false,'%'],
-    ['Konsistenz',   0.15,consistencyPct, 50, 100, false,'%'],
+    ['VO2Max',     0.30,latest.vo2max,  40,  50, false,'ml/kg/min', null],
+    ['Körperfett', 0.20,latest.bf,      22,14.5, true, '%',         null],
+    ['Ruhe-HR',    0.20,restingHR,      72,  52, true, 'bpm',       restingHRDate],
+    ['Muskelmasse',0.15,latest.muscle,  35,  40, false,'%',         null],
+    ['Konsistenz', 0.15,consistencyPct, 50, 100, false,'%',         null],
   ];
   const components=[];
-  for(const[name,weight,val,avg,exc,lower,unit] of defs){
+  for(const[name,weight,val,avg,exc,lower,unit,srcDate] of defs){
     if(val==null)continue;
     const norm=lower?(avg-val)/(avg-exc):(val-avg)/(exc-avg);
-    components.push({name,weight,norm:Math.max(-2,Math.min(2,norm)),value:val,unit});
+    components.push({name,weight,norm:Math.max(-2,Math.min(2,norm)),value:val,unit,sourceDate:srcDate});
   }
   if(components.length<2)return null;
   const totalW=components.reduce((s,c)=>s+c.weight,0);
   const adjustment=components.reduce((s,c)=>s+c.norm*(c.weight/totalW)*10,0);
   const bioAge=Math.round(chronoAge-adjustment);
-  return{bioAge,chronoAge,adjustment:Math.round(adjustment*10)/10,components};
+  return{bioAge,chronoAge,adjustment:Math.round(adjustment*10)/10,components,startedWeeks};
 }
 
 function addDays(str,n){const d=new Date(str);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
@@ -2114,9 +2127,10 @@ function renderLongevityScore(){
           ${ba.components.map(c=>{
             const pct=Math.max(0,Math.min(100,Math.round((c.norm+2)/4*100)));
             const bCol=c.norm>=0?'#43e97b':'#ff4757';
+            const dateHint=c.sourceDate?` <span style="font-size:10px;opacity:.7">(${c.sourceDate.slice(5)})</span>`:'';
             return`<div>
               <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:2px">
-                <span>${c.name}</span><span>${c.value}${c.unit}</span>
+                <span>${c.name}${dateHint}</span><span>${c.value}${c.unit}</span>
               </div>
               <div style="height:5px;background:var(--surface2);border-radius:3px;position:relative;overflow:hidden">
                 <div style="position:absolute;left:50%;top:0;width:1px;height:100%;background:var(--border);z-index:1"></div>
@@ -2125,6 +2139,7 @@ function renderLongevityScore(){
             </div>`;
           }).join('')}
           <div style="font-size:10px;color:var(--text2);margin-top:2px">◀ älter &nbsp;|&nbsp; Ø Referenz &nbsp;|&nbsp; jünger ▶</div>
+          ${ba.startedWeeks<4?`<div style="font-size:10px;color:var(--text2);margin-top:1px">(${ba.startedWeeks} Wochen Daten für Konsistenz)</div>`:''}
         </div>
       </div>
     </div>`:'<div style="border-top:1px solid var(--border);margin-top:18px;padding-top:12px;font-size:12px;color:var(--text2)">Biologisches Alter: Bitte VO2Max, Körperfett &amp; Muskel im Body Log erfassen</div>';
