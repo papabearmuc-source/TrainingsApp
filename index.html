@@ -908,16 +908,36 @@ function loadPlanDay(){
   if(!plan)return;
   const day=plan.days[parseInt(dayIdxStr)];
   if(!day)return;
-  const exercises=getExercises();
-  day.exercises.forEach(pe=>{
-    const ex=exercises.find(e=>e.id===pe.exId);
-    if(!ex)return;
-    if(currentSession.exercises.find(e=>e.exId===ex.id))return;
-    const sets=Array.from({length:pe.targetSets||3},()=>({reps:pe.targetReps||'',weight:pe.targetWeight||'',comment:''}));
-    currentSession.exercises.push({exId:ex.id,name:ex.name,group:ex.group,comment:'',sets});
-  });
-  renderSessionExercises();
-  toast(`Loaded: ${day.label}`);
+
+  function doLoad(){
+    const exercises=getExercises();
+    // Komplett ersetzen statt anhängen
+    currentSession.exercises=[];
+    day.exercises.forEach(pe=>{
+      const ex=exercises.find(e=>e.id===pe.exId);
+      if(!ex)return;
+      const sets=Array.from({length:pe.targetSets||3},()=>({reps:pe.targetReps||'',weight:pe.targetWeight||'',comment:''}));
+      currentSession.exercises.push({exId:ex.id,name:ex.name,group:ex.group,comment:'',sets});
+    });
+    renderSessionExercises();
+    toast(`Geladen: ${day.label}`);
+  }
+
+  // Falls schon Daten eingetragen wurden → Bestätigung einholen
+  const hasData=currentSession.exercises.some(ex=>ex.sets.some(s=>s.reps||s.weight));
+  if(hasData){
+    openModal(`
+      <h2 style="margin-bottom:12px">Plan wechseln?</h2>
+      <p style="color:var(--text2);margin-bottom:20px">Aktuelle Übungen und eingetragene Sets werden ersetzt durch:<br><strong>${escHtml(plan.name)} › ${escHtml(day.label)}</strong></p>
+      <div class="btn-row">
+        <button id="modal-load-confirm" class="btn">Plan laden</button>
+        <button id="modal-load-cancel" class="btn btn-secondary">Abbrechen</button>
+      </div>`);
+    document.getElementById('modal-load-cancel').addEventListener('click',closeModal);
+    document.getElementById('modal-load-confirm').addEventListener('click',()=>{closeModal();doLoad();});
+  }else{
+    doLoad();
+  }
 }
 
 function addExToSession(){
