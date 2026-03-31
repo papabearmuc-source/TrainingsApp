@@ -183,12 +183,11 @@
     </div>
     <div class="section-title">Body Metrics <span style="color:var(--text2);font-size:11px">(leave blank if not measured)</span></div>
     <div class="form-grid">
-      <div class="field"><label>Weight (kg)</label><input type="number" id="log-weight" step="0.1" placeholder="e.g. 75"></div>
-      <div class="field"><label>Body Fat (%)</label><input type="number" id="log-bf" step="0.1" placeholder="e.g. 15"></div>
-      <div class="field"><label>Muscle (%)</label><input type="number" id="log-muscle" step="0.1" placeholder="e.g. 40"></div>
-      <div class="field"><label>Waist (cm)</label><input type="number" id="log-waist" step="0.5" placeholder="e.g. 85"></div>
-      <div class="field"><label>VO2Max (ml/kg/min)</label><input type="number" id="log-vo2max" step="0.1" placeholder="42.5"></div>
-      <div class="field"><label>Resting HR (bpm)</label><input type="number" id="log-resting-hr" step="1" placeholder="e.g. 55" min="30" max="120"></div>
+      <div class="field"><label>Gewicht (kg)</label><input type="number" id="log-weight" step="0.1" placeholder="z.B. 75.0"></div>
+      <div class="field"><label>Taillenumfang (cm)</label><input type="number" id="log-waist" step="0.5" placeholder="z.B. 85"></div>
+      <div class="field"><label>Halsumfang (cm)</label><input type="number" id="log-neck" step="0.5" placeholder="z.B. 40.5" min="20" max="60"></div>
+      <div class="field"><label>VO2Max (ml/kg/min)</label><input type="number" id="log-vo2max" step="0.1" placeholder="42.5"><span style="font-size:11px;color:var(--text2)">optional, 7-Tage-Schnitt</span></div>
+      <div class="field"><label>Ruhepuls (bpm)</label><input type="number" id="log-resting-hr" step="1" placeholder="z.B. 55" min="30" max="120"><span style="font-size:11px;color:var(--text2)">optional, 7-Tage-Schnitt</span></div>
     </div>
     <div class="section-title">Nutrition</div>
     <div class="form-grid">
@@ -347,6 +346,10 @@
     <h3>Workout Frequency (last 8 weeks)</h3>
     <canvas id="workout-chart" height="160"></canvas>
   </div>
+  <div class="card">
+    <h3>LBM — Magermasse (kg)</h3>
+    <canvas id="lbm-chart" height="200"></canvas>
+  </div>
 </div>
 
 <!-- ══════════════ HISTORY ══════════════ -->
@@ -376,11 +379,18 @@
 <!-- ══════════════ SETTINGS ══════════════ -->
 <div id="page-settings" class="page">
   <div class="card">
+    <h3>Profil</h3>
+    <div class="form-grid">
+      <div class="field"><label>Größe (cm)</label><input type="number" id="profil-height" step="1" placeholder="179" min="140" max="220"></div>
+      <div class="field"><label>Chronologisches Alter (Jahre)</label><input type="number" id="profil-age" step="1" placeholder="40" min="15" max="100"></div>
+    </div>
+    <div class="btn-row"><button class="btn" onclick="saveProfil()">Profil speichern</button></div>
+  </div>
+  <div class="card">
     <h3>Goals</h3>
     <div class="form-grid">
       <div class="field"><label>Weight goal (kg)</label><input type="number" id="goal-weight" step="0.1"></div>
-      <div class="field"><label>Body fat goal (%)</label><input type="number" id="goal-bf" step="0.1"></div>
-      <div class="field"><label>Muscle goal (%)</label><input type="number" id="goal-muscle" step="0.1"></div>
+      <div class="field"><label>KFA-Ziel (%)</label><input type="number" id="goal-kfa" step="0.1" placeholder="17"></div>
       <div class="field"><label>Waist goal (cm)</label><input type="number" id="goal-waist" step="0.5"></div>
       <div class="field"><label>Daily protein target (g)</label><input type="number" id="goal-protein" step="1"></div>
       <div class="field"><label>VO2Max goal (ml/kg/min)</label><input type="number" id="goal-vo2max" step="0.1"></div>
@@ -391,11 +401,9 @@
     <h3>Starting Values</h3>
     <div class="form-grid">
       <div class="field"><label>Start weight (kg)</label><input type="number" id="start-weight" step="0.1"></div>
-      <div class="field"><label>Start body fat (%)</label><input type="number" id="start-bf" step="0.1"></div>
-      <div class="field"><label>Start muscle (%)</label><input type="number" id="start-muscle" step="0.1"></div>
-      <div class="field"><label>Start waist (cm)</label><input type="number" id="start-waist" step="0.5"></div>
+      <div class="field"><label>Start KFA (%)</label><input type="number" id="start-kfa" step="0.1"></div>
+      <div class="field"><label>Start Taille (cm)</label><input type="number" id="start-waist" step="0.5"></div>
       <div class="field"><label>Start VO2Max</label><input type="number" id="start-vo2max" step="0.1"></div>
-      <div class="field"><label>Geburtsjahr</label><input type="number" id="start-birthyear" placeholder="z.B. 1985" min="1920" max="2010"></div>
     </div>
     <div class="btn-row"><button class="btn" onclick="saveStarting()">Save Starting Values</button></div>
     <div class="section-title" style="margin-top:18px">Grundumsatz / BMR <span style="font-weight:400;text-transform:none;font-size:11px">(Katch-McArdle, automatisch)</span></div>
@@ -485,6 +493,7 @@ const BIRTH_YEAR_KEY      = 'trackfit_birth_year';
 const WORKOUT_TYPES_KEY   = 'trackfit_workout_types';
 const BUILTIN_TYPES       = ['gym','rest'];
 const LAST_EXPORT_KEY     = 'trackfit_last_export';
+const PROFIL_KEY          = 'trackfit_profil';
 const DEFAULT_WORKOUT_TYPES = [
   {id:'gym',        label:'Gym / Cleverfit',    icon:'🏋️'},
   {id:'cardio',     label:'Cardio / Ergometer', icon:'🚴'},
@@ -509,6 +518,27 @@ const getSessions     = ()=>get(SESS_KEY,[]);
 function getWorkoutTypes(){
   const stored=get(WORKOUT_TYPES_KEY,null);
   return(stored&&stored.length)?stored:DEFAULT_WORKOUT_TYPES.map(t=>({...t}));
+}
+function getProfile(){const p=get(PROFIL_KEY,{});return{height:p.height??179,age:p.age??null};}
+function getHeight(){return getProfile().height||179;}
+function calcNavyKFA(waist,neck,height){
+  if(!waist||!neck||!height||waist<=neck)return null;
+  const kfa=495/(1.0324-0.19077*Math.log10(waist-neck)+0.15456*Math.log10(height))-450;
+  return Math.round(kfa*10)/10;
+}
+function getLatestKFA(){
+  const entries=getEntries();
+  for(let i=entries.length-1;i>=0;i--){const e=entries[i];const v=e.kfa??e.bf;if(v!=null)return v;}
+  return null;
+}
+function getLatestLBM(){
+  const entries=getEntries();
+  for(let i=entries.length-1;i>=0;i--){if(entries[i].lbm!=null)return entries[i].lbm;}
+  return null;
+}
+function getPrevLBM(){
+  const entries=getEntries().filter(e=>e.lbm!=null);
+  return entries.length>=2?entries[entries.length-2].lbm:null;
 }
 
 function initExercises(){
@@ -576,14 +606,21 @@ function parseOptFloat(id){const v=parseFloat(document.getElementById(id).value)
 
 function prefillForDate(date){
   const entry=getEntries().find(e=>e.date===date);
-  const fieldMap={weight:'log-weight',bf:'log-bf',muscle:'log-muscle',waist:'log-waist',
+  const fieldMap={weight:'log-weight',waist:'log-waist',neck:'log-neck',
     vo2max:'log-vo2max',restingHR:'log-resting-hr',protein:'log-protein',carbs:'log-carbs',calories:'log-calories',
     steps:'log-steps'};
-  Object.values(fieldMap).forEach(id=>{document.getElementById(id).value='';});
+  Object.values(fieldMap).forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('log-notes').value='';
   if(entry){
-    Object.entries(fieldMap).forEach(([field,id])=>{if(entry[field]!=null)document.getElementById(id).value=entry[field];});
+    Object.entries(fieldMap).forEach(([field,id])=>{const el=document.getElementById(id);if(el&&entry[field]!=null)el.value=entry[field];});
     if(entry.notes)document.getElementById('log-notes').value=entry.notes;
+  }
+  // Prefill neck with last saved value if blank (rarely changes daily)
+  const neckEl=document.getElementById('log-neck');
+  if(neckEl&&!neckEl.value){
+    const all=getEntries();
+    for(let i=all.length-1;i>=0;i--){if(all[i].neck!=null){neckEl.value=all[i].neck;break;}}
+    if(!neckEl.value)neckEl.value='40.5';
   }
   calcStepCalsDisplay();
 }
@@ -591,8 +628,16 @@ prefillForDate(today());
 
 function clearForm(){
   document.getElementById('log-date').value=today();
-  ['log-weight','log-bf','log-muscle','log-waist','log-vo2max','log-resting-hr','log-protein','log-carbs','log-calories','log-steps','log-notes']
+  ['log-weight','log-waist','log-vo2max','log-resting-hr','log-protein','log-carbs','log-calories','log-steps','log-notes']
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  // Restore last neck value (rarely changes)
+  const neckEl=document.getElementById('log-neck');
+  if(neckEl){
+    neckEl.value='';
+    const all=getEntries();
+    for(let i=all.length-1;i>=0;i--){if(all[i].neck!=null){neckEl.value=all[i].neck;break;}}
+    if(!neckEl.value)neckEl.value='40.5';
+  }
   calcStepCalsDisplay();
 }
 
@@ -600,14 +645,18 @@ function saveEntry(){
   const date=document.getElementById('log-date').value;
   if(!date){toast('Pick a date','var(--red)');return}
   const entries=getEntries();
+  const height=getHeight();
   const idx=entries.findIndex(e=>e.date===date);
   if(idx>=0){
-    // Merge: only overwrite fields that are explicitly filled; leave blank fields unchanged
     const e=entries[idx];
-    const fieldMap={weight:'log-weight',bf:'log-bf',muscle:'log-muscle',waist:'log-waist',
+    const fieldMap={weight:'log-weight',waist:'log-waist',neck:'log-neck',
       vo2max:'log-vo2max',restingHR:'log-resting-hr',protein:'log-protein',carbs:'log-carbs',calories:'log-calories',
       steps:'log-steps'};
     Object.entries(fieldMap).forEach(([field,id])=>{const v=parseOptFloat(id);if(v!=null)e[field]=v;});
+    // Auto-calc KFA (Navy) and LBM on every save
+    const kfa=calcNavyKFA(e.waist,e.neck,height);
+    if(kfa!=null){e.kfa=kfa;}
+    if(kfa!=null&&e.weight!=null){e.lbm=Math.round(e.weight*(1-kfa/100)*10)/10;}
     // Auto-calculate step calories
     const stepsV=e.steps,wV=e.weight??getLatestWeight();
     if(stepsV&&wV)e.stepsCals=Math.round(stepsV*wV*0.0005);
@@ -616,11 +665,14 @@ function saveEntry(){
     entries[idx]=e;
   }else{
     const wParsed=parseOptFloat('log-weight');
+    const waistV=parseOptFloat('log-waist');
+    const neckV=parseOptFloat('log-neck');
     const sParsed=parseOptFloat('log-steps');
     const wForCals=wParsed??getLatestWeight();
+    const kfa=calcNavyKFA(waistV,neckV,height);
+    const lbm=(kfa!=null&&wParsed!=null)?Math.round(wParsed*(1-kfa/100)*10)/10:null;
     entries.push({id:Date.now(),date,
-      weight:wParsed,bf:parseOptFloat('log-bf'),
-      muscle:parseOptFloat('log-muscle'),waist:parseOptFloat('log-waist'),
+      weight:wParsed,waist:waistV,neck:neckV,kfa,lbm,
       vo2max:parseOptFloat('log-vo2max'),restingHR:parseOptFloat('log-resting-hr'),
       protein:parseOptFloat('log-protein'),
       carbs:parseOptFloat('log-carbs'),calories:parseOptFloat('log-calories'),
@@ -640,38 +692,53 @@ function renderDashboard(){
   const entries=getEntries(),goals=getGoals(),start=getStart();
   const latest={};
   for(const e of entries){
-    if(e.weight!=null)latest.weight=e.weight;if(e.bf!=null)latest.bf=e.bf;
-    if(e.muscle!=null)latest.muscle=e.muscle;if(e.waist!=null)latest.waist=e.waist;
+    if(e.weight!=null)latest.weight=e.weight;
+    const kfaVal=e.kfa??e.bf; if(kfaVal!=null)latest.kfa=kfaVal;
+    if(e.lbm!=null)latest.lbm=e.lbm;
+    if(e.waist!=null)latest.waist=e.waist;
     if(e.vo2max!=null)latest.vo2max=e.vo2max;
   }
+  const prevLBM=getPrevLBM();
   const metrics=[
-    {key:'weight',label:'Weight',unit:'kg',goal:goals.weight,start:start.weight,lower:true,color:'#6c63ff'},
-    {key:'bf',label:'Body Fat',unit:'%',goal:goals.bf,start:start.bf,lower:true,color:'#ff6584'},
-    {key:'muscle',label:'Muscle',unit:'%',goal:goals.muscle,start:start.muscle,lower:false,color:'#43e97b'},
-    {key:'waist',label:'Waist',unit:'cm',goal:goals.waist,start:start.waist,lower:true,color:'#f9ca24'},
+    {key:'weight',label:'Gewicht',unit:'kg',goal:goals.weight,start:start.weight,lower:true,color:'#6c63ff'},
+    {key:'kfa',label:'KFA (Navy)',unit:'%',goal:goals.kfa??17,start:start.kfa??start.bf,lower:true,color:'#ff6584'},
+    {key:'lbm',label:'LBM',unit:'kg',goal:null,start:null,lower:false,color:'#43e97b',trendOnly:true},
+    {key:'waist',label:'Taille',unit:'cm',goal:goals.waist,start:start.waist,lower:true,color:'#f9ca24'},
     {key:'vo2max',label:'VO2Max',unit:'',goal:goals.vo2max,start:start.vo2max,lower:false,color:'#00c9ff'},
   ];
   document.getElementById('goals-grid').innerHTML=metrics.map(m=>{
     const cur=latest[m.key]??m.start,s=m.start,g=m.goal;
     let pct,deltaLabel,barColor;
-    if(cur==null||s==null||g==null){
+    if(m.trendOnly){
+      // LBM: show trend vs prev entry, no goal tracking
+      pct=0;barColor='var(--border)';
+      if(cur==null){deltaLabel='<span style="color:var(--text2)">Körperdaten eintragen</span>';}
+      else if(prevLBM!=null){
+        const diff=+(cur-prevLBM).toFixed(1);
+        const col=diff>=0?'var(--green)':'var(--red)';
+        deltaLabel=`<span style="color:${col}">${diff>=0?'+':''}${diff} kg vs. vorheriger Eintrag</span>`;
+        pct=50; barColor=col;
+      }else{deltaLabel='<span style="color:var(--text2)">Erster Eintrag</span>';}
+    }else if(cur==null||s==null||g==null){
       pct=0;barColor='var(--border)';
       deltaLabel='<span style="color:var(--text2)">Set goal &amp; start in Settings</span>';
     }else if(m.lower){
       pct=s===g?100:Math.max(0,Math.min(100,((s-cur)/(s-g))*100));
       const diff=+(cur-g).toFixed(1);
-      deltaLabel=diff<=0?`<span style="color:var(--green)">✓ Goal reached!</span>`:`<span style="color:var(--text2)">${diff>0?'+':''}${diff}${m.unit} to go</span>`;
+      deltaLabel=diff<=0?`<span style="color:var(--green)">✓ Ziel erreicht!</span>`:`<span style="color:var(--text2)">${diff>0?'+':''}${diff}${m.unit} to go</span>`;
       barColor=pct>=100?'var(--green)':pct>50?m.color:'var(--orange)';
     }else{
       pct=s===g?100:Math.max(0,Math.min(100,((cur-s)/(g-s))*100));
       const diff=+(g-cur).toFixed(1);
-      deltaLabel=diff<=0?`<span style="color:var(--green)">✓ Goal reached!</span>`:`<span style="color:var(--text2)">${diff}${m.unit} to go</span>`;
+      deltaLabel=diff<=0?`<span style="color:var(--green)">✓ Ziel erreicht!</span>`:`<span style="color:var(--text2)">${diff}${m.unit} to go</span>`;
       barColor=pct>=100?'var(--green)':pct>50?m.color:'var(--orange)';
     }
+    const targetLine=m.trendOnly?`<div class="target" style="color:var(--text2);font-size:11px">Trend: letzter Eintrag vs. davor</div>`
+      :`<div class="target">Ziel: ${g!=null?(m.lower?'≤':'≥')+' '+g+m.unit:'—'} · Start: ${s!=null?s+m.unit:'—'}</div>`;
     return `<div class="goal-card">
       <div class="label">${m.label}</div>
       <div class="value" style="color:${m.color}">${cur!=null?cur+m.unit:'—'}</div>
-      <div class="target">Goal: ${g!=null?(m.lower?'≤':'≥')+' '+g+m.unit:'—'} · Start: ${s!=null?s+m.unit:'—'}</div>
+      ${targetLine}
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
       <div class="delta">${deltaLabel}</div>
     </div>`;
@@ -1480,10 +1547,9 @@ function updatePlanEx(planId,di,ei,field,val){
 // Charts
 // ════════════════════════════════════════════════════════
 const METRICS=[
-  {key:'weight',label:'Weight (kg)',color:'#6c63ff'},
-  {key:'bf',label:'Body Fat (%)',color:'#ff6584'},
-  {key:'muscle',label:'Muscle (%)',color:'#43e97b'},
-  {key:'waist',label:'Waist (cm)',color:'#f9ca24'},
+  {key:'weight',label:'Gewicht (kg)',color:'#6c63ff'},
+  {key:'kfa',label:'KFA (%)',color:'#ff6584'},
+  {key:'waist',label:'Taille (cm)',color:'#f9ca24'},
 ];
 let activeMetric='weight';
 
@@ -1497,18 +1563,52 @@ function renderCharts(){
   document.getElementById('metric-tabs').innerHTML=METRICS.map(m=>
     `<div class="chart-tab ${m.key===activeMetric?'active':''}" onclick="setMetric('${m.key}')">${m.label}</div>`
   ).join('');
-  drawMetricChart();drawProteinChart();drawWorkoutChart();
+  drawMetricChart();drawProteinChart();drawWorkoutChart();drawLBMChart();
+}
+
+function drawLBMChart(){
+  const canvas=document.getElementById('lbm-chart');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const entries=getEntries().filter(e=>e.lbm!=null);
+  const W=canvas.parentElement.offsetWidth||700;
+  canvas.width=W;canvas.height=200;ctx.clearRect(0,0,W,200);
+  if(!entries.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('Noch keine LBM-Daten',W/2,100);return}
+  const vals=entries.map(e=>e.lbm);
+  const minV=Math.min(...vals)*0.98,maxV=Math.max(...vals)*1.02;
+  const[padL,padR,padT,padB]=[44,16,14,30];
+  const gW=W-padL-padR,gH=200-padT-padB;
+  const toX=i=>padL+(i/(entries.length-1||1))*gW;
+  const toY=v=>padT+(1-(v-minV)/(maxV-minV))*gH;
+  ctx.strokeStyle='#2e2e45';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=padT+(i/4)*gH;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
+    ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='right';
+    ctx.fillText((maxV-i/4*(maxV-minV)).toFixed(1),padL-4,y+3);
+  }
+  const grad=ctx.createLinearGradient(0,padT,0,padT+gH);
+  grad.addColorStop(0,'#43e97b33');grad.addColorStop(1,'#43e97b05');
+  ctx.beginPath();ctx.moveTo(toX(0),padT+gH);
+  entries.forEach((_,i)=>ctx.lineTo(toX(i),toY(vals[i])));
+  ctx.lineTo(toX(entries.length-1),padT+gH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.strokeStyle='#43e97b';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  ctx.beginPath();entries.forEach((_,i)=>i===0?ctx.moveTo(toX(i),toY(vals[i])):ctx.lineTo(toX(i),toY(vals[i])));ctx.stroke();
+  entries.forEach((_,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(vals[i]),3.5,0,Math.PI*2);ctx.fillStyle='#43e97b';ctx.fill()});
+  ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  const step=Math.max(1,Math.floor(entries.length/8));
+  entries.forEach((e,i)=>{if(i%step===0||i===entries.length-1)ctx.fillText(e.date.slice(5),toX(i),200-padB+14)});
 }
 function setMetric(k){activeMetric=k;renderCharts()}
 
 function drawMetricChart(){
+  if(activeMetric==='kfa'){drawKFAChart();return;}
   const canvas=document.getElementById('main-chart'),ctx=canvas.getContext('2d');
   const entries=getEntries().filter(e=>e[activeMetric]!=null);
   const goals=getGoals(),m=METRICS.find(x=>x.key===activeMetric);
   const goalVal=goals[activeMetric]??0;
   const W=canvas.parentElement.offsetWidth||700;
   canvas.width=W;canvas.height=220;ctx.clearRect(0,0,W,220);
-  if(!entries.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('No data yet',W/2,110);return}
+  if(!entries.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('Noch keine Daten',W/2,110);return}
   const vals=entries.map(e=>e[activeMetric]);
   const minV=Math.min(...vals,goalVal)*0.97,maxV=Math.max(...vals,goalVal)*1.03;
   const[padL,padR,padT,padB]=[44,16,12,30];
@@ -1524,7 +1624,7 @@ function drawMetricChart(){
   const gy=toY(goalVal);
   ctx.strokeStyle=m.color+'55';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
   ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+gW,gy);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle=m.color+'99';ctx.font='10px Segoe UI';ctx.textAlign='left';ctx.fillText('Goal',padL+4,gy-4);
+  ctx.fillStyle=m.color+'99';ctx.font='10px Segoe UI';ctx.textAlign='left';ctx.fillText('Ziel',padL+4,gy-4);
   const grad=ctx.createLinearGradient(0,padT,0,padT+gH);
   grad.addColorStop(0,m.color+'33');grad.addColorStop(1,m.color+'05');
   ctx.beginPath();ctx.moveTo(toX(0),padT+gH);
@@ -1536,6 +1636,109 @@ function drawMetricChart(){
   ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
   const step=Math.max(1,Math.floor(entries.length/8));
   entries.forEach((e,i)=>{if(i%step===0||i===entries.length-1)ctx.fillText(e.date.slice(5),toX(i),220-padB+14)});
+}
+
+function drawKFAChart(){
+  const canvas=document.getElementById('main-chart'),ctx=canvas.getContext('2d');
+  const allEntries=getEntries();
+  const goals=getGoals();
+  const goalKFA=goals.kfa??17;
+  const todayStr=today();
+  // Build combined data: kfa preferred, bf as fallback for historical entries
+  const pts=allEntries.map(e=>{
+    const v=e.kfa??e.bf;
+    return v!=null?{date:e.date,val:v,isNavy:e.kfa!=null}:null;
+  }).filter(Boolean);
+  const W=canvas.parentElement.offsetWidth||700;
+  canvas.width=W;canvas.height=260;ctx.clearRect(0,0,W,260);
+  if(!pts.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('Noch keine KFA-Daten',W/2,130);return}
+  // Linear regression for forecast
+  const t0=new Date(pts[0].date).getTime();
+  const regPts=pts.map(p=>({x:(new Date(p.date).getTime()-t0)/86400000,y:p.val}));
+  const n=regPts.length;
+  const sx=regPts.reduce((s,p)=>s+p.x,0),sy=regPts.reduce((s,p)=>s+p.y,0);
+  const sxy=regPts.reduce((s,p)=>s+p.x*p.y,0),sxx=regPts.reduce((s,p)=>s+p.x*p.x,0);
+  const slope=n>1?(n*sxy-sx*sy)/(n*sxx-sx*sx):0;
+  const intercept=(sy-slope*sx)/n;
+  const lastX=regPts[regPts.length-1].x;
+  const foreEndX=lastX+90;
+  // Goal date calc
+  let goalDateStr=null;
+  if(slope<0){
+    const gx=(goalKFA-intercept)/slope;
+    if(gx>lastX&&gx<foreEndX+365){
+      goalDateStr=new Date(t0+gx*86400000).toISOString().slice(0,10);
+    }
+  }
+  // Value range (include forecast)
+  const foreEndY=intercept+slope*foreEndX;
+  const allVals=[...pts.map(p=>p.val),goalKFA,foreEndY];
+  const minV=Math.min(...allVals)*0.97,maxV=Math.max(...allVals)*1.03;
+  const[padL,padR,padT,padB]=[44,16,14,50];
+  const gW=W-padL-padR,gH=260-padT-padB;
+  // x axis spans from first data point to foreEnd
+  const totalDays=foreEndX;
+  const toX=days=>padL+(days/totalDays)*gW;
+  const toY=v=>padT+(1-(v-minV)/(maxV-minV))*gH;
+  // Grid
+  ctx.strokeStyle='#2e2e45';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=padT+(i/4)*gH;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
+    ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='right';
+    ctx.fillText((maxV-i/4*(maxV-minV)).toFixed(1),padL-4,y+3);
+  }
+  // Goal line
+  const gy=toY(goalKFA);
+  ctx.strokeStyle='#ff658455';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+gW,gy);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#ff658499';ctx.font='10px Segoe UI';ctx.textAlign='left';ctx.fillText(`Ziel: ${goalKFA}%`,padL+4,gy-4);
+  // Gradient fill for historical data
+  const grad=ctx.createLinearGradient(0,padT,0,padT+gH);
+  grad.addColorStop(0,'#ff658433');grad.addColorStop(1,'#ff658405');
+  ctx.beginPath();ctx.moveTo(toX(regPts[0].x),padT+gH);
+  regPts.forEach(p=>ctx.lineTo(toX(p.x),toY(p.val)));
+  ctx.lineTo(toX(regPts[regPts.length-1].x),padT+gH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  // Historical line
+  ctx.strokeStyle='#ff6584';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  ctx.beginPath();regPts.forEach((p,i)=>i===0?ctx.moveTo(toX(p.x),toY(p.val)):ctx.lineTo(toX(p.x),toY(p.val)));ctx.stroke();
+  // Dots: orange = Omron (bf), blue = Navy (kfa)
+  pts.forEach((p,i)=>{
+    ctx.beginPath();ctx.arc(toX(regPts[i].x),toY(p.val),4,0,Math.PI*2);
+    ctx.fillStyle=p.isNavy?'#00c9ff':'#f0932b';ctx.fill();
+  });
+  // Vertical separator at today
+  const todayX=(new Date(todayStr).getTime()-t0)/86400000;
+  if(todayX>=0&&todayX<=totalDays){
+    ctx.strokeStyle='#9090b066';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(toX(todayX),padT);ctx.lineTo(toX(todayX),padT+gH);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#9090b0';ctx.font='9px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Heute',toX(todayX),padT-2);
+  }
+  // Forecast line
+  if(n>=3){
+    ctx.strokeStyle='#ff658488';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(toX(regPts[regPts.length-1].x),toY(pts[pts.length-1].val));
+    ctx.lineTo(toX(foreEndX),toY(intercept+slope*foreEndX));ctx.stroke();ctx.setLineDash([]);
+    // Goal date annotation
+    if(goalDateStr){
+      const gx2=(new Date(goalDateStr).getTime()-t0)/86400000;
+      ctx.strokeStyle='#43e97b66';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(toX(gx2),padT);ctx.lineTo(toX(gx2),padT+gH);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#43e97b';ctx.font='10px Segoe UI';ctx.textAlign='center';
+      ctx.fillText(`Zieldatum: ${goalDateStr.slice(5)}`,toX(gx2),padT+gH+28);
+    }else if(slope>=0){
+      ctx.fillStyle='#ff4757';ctx.font='10px Segoe UI';ctx.textAlign='left';
+      ctx.fillText('Kein Zieldatum bei aktuellem Trend',padL,padT+gH+28);
+    }
+  }
+  // X axis labels
+  ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  const step=Math.max(1,Math.floor(pts.length/6));
+  pts.forEach((p,i)=>{if(i%step===0||i===pts.length-1)ctx.fillText(p.date.slice(5),toX(regPts[i].x),padT+gH+14)});
+  // Legend
+  ctx.font='10px Segoe UI';ctx.textAlign='left';
+  ctx.fillStyle='#f0932b';ctx.fillRect(padL,padT+gH+36,10,10);ctx.fillStyle='#9090b0';ctx.fillText('Omron (historisch)',padL+14,padT+gH+45);
+  ctx.fillStyle='#00c9ff';ctx.fillRect(padL+140,padT+gH+36,10,10);ctx.fillStyle='#9090b0';ctx.fillText('Navy (berechnet)',padL+154,padT+gH+45);
 }
 
 function drawProteinChart(){
@@ -1651,9 +1854,11 @@ function renderHistory(){
       }
     });
     if(e.weight)badges.push(`<span class="badge">⚖️ ${e.weight}kg</span>`);
-    if(e.bf)badges.push(`<span class="badge">🔵 ${e.bf}% fat</span>`);
-    if(e.muscle)badges.push(`<span class="badge">💪 ${e.muscle}% muscle</span>`);
-    if(e.waist)badges.push(`<span class="badge">📏 ${e.waist}cm</span>`);
+    if(e.kfa!=null)badges.push(`<span class="badge">🔵 ${e.kfa}% KFA (Navy)</span>`);
+    else if(e.bf!=null)badges.push(`<span class="badge">🔵 ${e.bf}% KFA (Omron)</span>`);
+    if(e.lbm!=null)badges.push(`<span class="badge">💪 ${e.lbm}kg LBM</span>`);
+    if(e.neck!=null)badges.push(`<span class="badge">📏 Hals ${e.neck}cm</span>`);
+    if(e.waist)badges.push(`<span class="badge">📏 Taille ${e.waist}cm</span>`);
     if(e.vo2max)badges.push(`<span class="badge">🫁 ${e.vo2max} VO2Max</span>`);
     if(e.protein)badges.push(`<span class="badge">🥩 ${e.protein}g protein</span>`);
     if(e.carbs)badges.push(`<span class="badge">🍞 ${e.carbs}g carbs</span>`);
@@ -2004,14 +2209,16 @@ function calcLongevityScore(){
   const entries=getEntries(),goals=getGoals(),start=getStart(),sessions=getSessions();
   const latest={};
   for(const e of entries){
-    if(e.weight!=null)latest.weight=e.weight;if(e.bf!=null)latest.bf=e.bf;
-    if(e.muscle!=null)latest.muscle=e.muscle;if(e.waist!=null)latest.waist=e.waist;
+    if(e.weight!=null)latest.weight=e.weight;
+    const kfaVal=e.kfa??e.bf; if(kfaVal!=null)latest.kfa=kfaVal;
+    if(e.waist!=null)latest.waist=e.waist;
     if(e.vo2max!=null)latest.vo2max=e.vo2max;
   }
+  const kfaGoal=goals.kfa??goals.bf??null;
+  const kfaStart=start.kfa??start.bf??null;
   const kpis=[
-    calcKPIScore(latest.bf,    goals.bf,    start.bf,    true),
+    calcKPIScore(latest.kfa,   kfaGoal,     kfaStart,    true),
     calcKPIScore(latest.weight,goals.weight,start.weight,true),
-    calcKPIScore(latest.muscle,goals.muscle,start.muscle,false),
     calcKPIScore(latest.waist, goals.waist, start.waist, true),
     calcKPIScore(latest.vo2max,goals.vo2max,start.vo2max,false),
   ];
@@ -2049,8 +2256,7 @@ function calcBioAge(){
   // Latest body metrics
   const latest={};
   for(const e of entries){
-    if(e.bf!=null)latest.bf=e.bf;
-    if(e.muscle!=null)latest.muscle=e.muscle;
+    const kfaV=e.kfa??e.bf; if(kfaV!=null)latest.bf=kfaV;
     if(e.vo2max!=null)latest.vo2max=e.vo2max;
   }
   // Most recent resting HR from body log
@@ -2173,7 +2379,7 @@ function renderLongevityScore(){
           ${ba.startedWeeks<4?`<div style="font-size:10px;color:var(--text2);margin-top:1px">(${ba.startedWeeks} Wochen Daten für Konsistenz)</div>`:''}
         </div>
       </div>
-    </div>`:'<div style="border-top:1px solid var(--border);margin-top:18px;padding-top:12px;font-size:12px;color:var(--text2)">Biologisches Alter: Bitte VO2Max, Körperfett &amp; Muskel im Body Log erfassen</div>';
+    </div>`:'<div style="border-top:1px solid var(--border);margin-top:18px;padding-top:12px;font-size:12px;color:var(--text2)">Biologisches Alter: Bitte VO2Max, KFA &amp; Ruhepuls im Body Log erfassen</div>';
   card.innerHTML=`
     <h3>Projekt Longevity Score</h3>
     <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
@@ -2327,12 +2533,16 @@ function renderPRHistory(){
 
 function calcBMR(){
   const entries=getEntries();
+  const height=getHeight();
   for(let i=entries.length-1;i>=0;i--){
     const e=entries[i];
-    if(e.weight!=null&&e.bf!=null){
-      const lbm=Math.round(e.weight*(1-e.bf/100)*10)/10;
+    let kfa=e.kfa;
+    if(kfa==null&&e.waist&&e.neck)kfa=calcNavyKFA(e.waist,e.neck,height);
+    if(kfa==null)kfa=e.bf;
+    if(e.weight!=null&&kfa!=null){
+      const lbm=e.lbm??Math.round(e.weight*(1-kfa/100)*10)/10;
       const bmr=Math.round(370+21.6*lbm);
-      return{bmr,lbm,weight:e.weight,bf:e.bf,date:e.date};
+      return{bmr,lbm,weight:e.weight,kfa,date:e.date,method:e.kfa!=null?'Navy':e.bf!=null?'Omron':'Navy (live)'};
     }
   }
   return null;
@@ -2349,7 +2559,8 @@ function renderBMRDisplay(){
   el.innerHTML=`
     <div style="font-size:24px;font-weight:700;color:var(--accent);margin-bottom:6px">${d.bmr} kcal/Tag</div>
     <div style="color:var(--text2);font-size:12px;line-height:1.7">
-      LBM = ${d.weight} kg × (1 − ${d.bf}%) = <strong style="color:var(--text)">${d.lbm} kg</strong><br>
+      KFA (${d.method}) = ${d.kfa?.toFixed(1)}%<br>
+      LBM = ${d.weight} kg × (1 − ${d.kfa?.toFixed(1)}%) = <strong style="color:var(--text)">${d.lbm} kg</strong><br>
       BMR = 370 + 21,6 × ${d.lbm} = <strong style="color:var(--text)">${d.bmr} kcal</strong><br>
       <span style="font-size:11px;color:var(--text2)">Basierend auf Eintrag vom ${d.date}</span>
     </div>`;
@@ -2374,18 +2585,18 @@ function calcStepCalsDisplay(){
 
 function loadSettings(){
   const goals=getGoals(),start=getStart();
+  const profil=getProfile();
+  document.getElementById('profil-height').value=profil.height||179;
+  document.getElementById('profil-age').value=profil.age||'';
   document.getElementById('goal-weight').value=goals.weight??'';
-  document.getElementById('goal-bf').value=goals.bf??'';
-  document.getElementById('goal-muscle').value=goals.muscle??'';
+  document.getElementById('goal-kfa').value=goals.kfa??goals.bf??'';
   document.getElementById('goal-waist').value=goals.waist??'';
   document.getElementById('goal-protein').value=goals.protein??'';
   document.getElementById('start-weight').value=start.weight??'';
-  document.getElementById('start-bf').value=start.bf??'';
-  document.getElementById('start-muscle').value=start.muscle??'';
+  document.getElementById('start-kfa').value=start.kfa??start.bf??'';
   document.getElementById('start-waist').value=start.waist??'';
   document.getElementById('start-vo2max').value=start.vo2max??'';
   document.getElementById('goal-vo2max').value=goals.vo2max??'';
-  document.getElementById('start-birthyear').value=localStorage.getItem(BIRTH_YEAR_KEY)??'';
   renderBMRDisplay();
   renderWorkoutTypesSettings();
   // AI provider selector — restore saved choice, then update key placeholder + model label
@@ -2398,10 +2609,18 @@ function loadSettings(){
   if(sysEl) sysEl.value = localStorage.getItem(AI_SYSPROMPT_STORE) || DEFAULT_SYS_PROMPT;
 }
 
+function saveProfil(){
+  const h=parseInt(document.getElementById('profil-height').value);
+  const a=parseInt(document.getElementById('profil-age').value);
+  set(PROFIL_KEY,{height:(h&&h>100&&h<250)?h:179,age:(a&&a>10&&a<120)?a:null});
+  toast('Profil gespeichert!');
+  renderBMRDisplay();
+}
+
 function saveGoals(){
   const pf=id=>{const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v};
   set(GOALS_KEY,{
-    weight:pf('goal-weight'),bf:pf('goal-bf'),muscle:pf('goal-muscle'),
+    weight:pf('goal-weight'),kfa:pf('goal-kfa'),
     waist:pf('goal-waist'),protein:pf('goal-protein'),vo2max:pf('goal-vo2max'),
   });
   toast('Goals saved!');
@@ -2410,12 +2629,9 @@ function saveGoals(){
 function saveStarting(){
   const pf=id=>{const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v};
   set(START_KEY,{
-    weight:pf('start-weight'),bf:pf('start-bf'),muscle:pf('start-muscle'),
+    weight:pf('start-weight'),kfa:pf('start-kfa'),
     waist:pf('start-waist'),vo2max:pf('start-vo2max'),
   });
-  const byVal=parseInt(document.getElementById('start-birthyear').value);
-  if(!isNaN(byVal)&&byVal>1920&&byVal<2010)localStorage.setItem(BIRTH_YEAR_KEY,String(byVal));
-  else localStorage.removeItem(BIRTH_YEAR_KEY);
   toast('Starting values saved!');
   renderBMRDisplay();
 }
@@ -2471,11 +2687,11 @@ function exportExcel(){
   const wb=XLSX.utils.book_new();
 
   // Sheet 1: Body Metrics
-  const bmRows=[['Datum','Gewicht (kg)','Körperfett (%)','Muskelmasse (%)','Taille (cm)','VO2Max','Ruhe-HR (bpm)','Schritte','Schritt-Kalorien','Protein (g)','Kohlenhydrate (g)','Kalorien','Notizen']];
+  const bmRows=[['Datum','Gewicht (kg)','KFA % (Navy)','KFA % (Omron)','LBM (kg)','Hals (cm)','Taille (cm)','VO2Max','Ruhe-HR (bpm)','Schritte','Schritt-Kalorien','Protein (g)','Kohlenhydrate (g)','Kalorien','Notizen']];
   for(const e of entries){
     bmRows.push([
       e.date,
-      e.weight??'',e.bf??'',e.muscle??'',e.waist??'',e.vo2max??'',e.restingHR??'',
+      e.weight??'',e.kfa??'',e.bf??'',e.lbm??'',e.neck??'',e.waist??'',e.vo2max??'',e.restingHR??'',
       e.steps??'',e.stepsCals??'',e.protein??'',e.carbs??'',e.calories??'',
       e.notes??''
     ]);
@@ -2511,8 +2727,8 @@ function exportExcel(){
     const m=e.date.slice(0,7);
     if(!monthMap[m])monthMap[m]={weight:[],bf:[],muscle:[],protein:[],steps:[]};
     if(e.weight!=null)monthMap[m].weight.push(e.weight);
-    if(e.bf!=null)monthMap[m].bf.push(e.bf);
-    if(e.muscle!=null)monthMap[m].muscle.push(e.muscle);
+    const kfaVal=e.kfa??e.bf; if(kfaVal!=null)monthMap[m].bf.push(kfaVal);
+    if(e.lbm!=null)monthMap[m].muscle.push(e.lbm);
     if(e.protein!=null)monthMap[m].protein.push(e.protein);
     if(e.steps!=null)monthMap[m].steps.push(e.steps);
   }
@@ -2520,7 +2736,7 @@ function exportExcel(){
     const m=s.date.slice(0,7);
     if(!monthMap[m])monthMap[m]={weight:[],bf:[],muscle:[],protein:[],steps:[]};
   }
-  const moRows=[['Monat','Ø Gewicht (kg)','Ø KF (%)','Ø Muskeln (%)','Ø Protein (g)','Gesamt Schritte','Gym','Cardio','Basketball']];
+  const moRows=[['Monat','Ø Gewicht (kg)','Ø KFA (%)','Ø LBM (kg)','Ø Protein (g)','Gesamt Schritte','Gym','Cardio','Basketball']];
   for(const m of Object.keys(monthMap).sort()){
     const d=monthMap[m];
     const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10:'';
