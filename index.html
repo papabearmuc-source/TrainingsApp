@@ -339,7 +339,7 @@
     <canvas id="main-chart" height="220"></canvas>
   </div>
   <div class="card">
-    <h3>Protein vs Target (150g)</h3>
+    <h3 id="protein-chart-title">Protein vs Ziel</h3>
     <canvas id="protein-chart" height="160"></canvas>
   </div>
   <div class="card">
@@ -392,7 +392,7 @@
       <div class="field"><label>Weight goal (kg)</label><input type="number" id="goal-weight" step="0.1"></div>
       <div class="field"><label>KFA-Ziel (%)</label><input type="number" id="goal-kfa" step="0.1" placeholder="17"></div>
       <div class="field"><label>Waist goal (cm)</label><input type="number" id="goal-waist" step="0.5"></div>
-      <div class="field"><label>Daily protein target (g)</label><input type="number" id="goal-protein" step="1"></div>
+      <div id="protein-goal-display" style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text2)">Protein-Ziel: wird aus LBM berechnet</div>
       <div class="field"><label>VO2Max goal (ml/kg/min)</label><input type="number" id="goal-vo2max" step="0.1"></div>
     </div>
     <div class="btn-row"><button class="btn" onclick="saveGoals()">Save Goals</button></div>
@@ -521,6 +521,17 @@ function getWorkoutTypes(){
 }
 function getProfile(){const p=get(PROFIL_KEY,{});return{height:p.height??179,age:p.age??null};}
 function getHeight(){return getProfile().height||179;}
+function getProteinGoal(){
+  const lbm=getLatestLBM();
+  if(lbm!=null)return Math.round(lbm*2.0);
+  return getGoals().protein||150;
+}
+function proteinColor(protein,goal){
+  if(!goal)return 'var(--text2)';
+  if(protein<goal*0.85)return 'var(--red)';
+  if(protein<=goal*1.15)return 'var(--green)';
+  return 'var(--yellow)';
+}
 function calcNavyKFA(waist,neck,height){
   if(!waist||!neck||!height||waist<=neck)return null;
   const kfa=495/(1.0324-0.19077*Math.log10(waist-neck)+0.15456*Math.log10(height))-450;
@@ -756,15 +767,17 @@ function renderDashboard(){
   const totalMins=weekSessions.reduce((sum,s)=>sum+(s.duration||0),0);
   const weekEntries=entries.filter(e=>e.date>=weekStr);
   const pE=weekEntries.filter(e=>e.protein);
-  const avgP=pE.length?Math.round(pE.reduce((s,e)=>s+e.protein,0)/pE.length):'—';
+  const avgP=pE.length?Math.round(pE.reduce((s,e)=>s+e.protein,0)/pE.length):null;
+  const pGoalDash=getProteinGoal();
+  const avgPColor=avgP!=null?proteinColor(avgP,pGoalDash):'var(--text)';
   document.getElementById('summary-row').innerHTML=[
-    {label:'Gym this week',val:`${gym}/3`,ok:gym>=3},
-    {label:'Cardio this week',val:`${cardio}/2`,ok:cardio>=2},
-    {label:'Basketball',val:`${bball}/1`,ok:bball>=1},
-    {label:'Avg Protein',val:`${avgP}g`,ok:false},
-    {label:'Training time',val:totalMins?`${totalMins} min`:'—',ok:false},
-    {label:'Kcal burned',val:totalCals?`${totalCals} kcal`:'—',ok:false},
-  ].map(p=>`<div class="stat-pill"><span class="sp-label">${p.label}</span><span class="sp-val" style="color:${p.ok?'var(--green)':'var(--text)'}">${p.val}</span></div>`).join('');
+    {label:'Gym this week',val:`${gym}/3`,col:gym>=3?'var(--green)':'var(--text)'},
+    {label:'Cardio this week',val:`${cardio}/2`,col:cardio>=2?'var(--green)':'var(--text)'},
+    {label:'Basketball',val:`${bball}/1`,col:bball>=1?'var(--green)':'var(--text)'},
+    {label:`Ø Protein (Ziel: ${pGoalDash}g)`,val:avgP!=null?`${avgP}g`:'—',col:avgPColor},
+    {label:'Training time',val:totalMins?`${totalMins} min`:'—',col:'var(--text)'},
+    {label:'Kcal burned',val:totalCals?`${totalCals} kcal`:'—',col:'var(--text)'},
+  ].map(p=>`<div class="stat-pill"><span class="sp-label">${p.label}</span><span class="sp-val" style="color:${p.col}">${p.val}</span></div>`).join('');
 
   const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const weekDates=Array.from({length:7},(_,i)=>{const d=new Date(weekStart);d.setDate(d.getDate()+i);return d.toISOString().slice(0,10)});
@@ -783,7 +796,7 @@ function renderDashboard(){
       <div style="font-size:18px;min-height:22px">${icons||''}</div>
       ${dayDur?`<div style="font-size:11px;color:var(--text2)">${dayDur}min</div>`:''}
       ${totalDayCals?`<div style="font-size:11px;color:var(--orange)">🔥${totalDayCals}</div>`:''}
-      ${entry?.protein?`<div style="font-size:11px;color:${entry.protein>=(getGoals().protein||Infinity)?'var(--green)':'var(--text2)'}">${entry.protein}g</div>`:''}
+      ${entry?.protein?`<div style="font-size:11px;color:${proteinColor(entry.protein,getProteinGoal())}">${entry.protein}g</div>`:''}
       ${entry?.steps?`<div style="font-size:11px;color:var(--text2)">👣${entry.steps.toLocaleString()}</div>`:''}
     </div>`;
   }).join('')+`</div>`;
@@ -807,11 +820,12 @@ function drawMiniChart(){
   canvas.width=W;canvas.height=80;ctx.clearRect(0,0,W,80);
   const entries=getEntries(),goals=getGoals();
   const days=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;});
+  const pGoal=getProteinGoal();
   const proteins=days.map(d=>entries.find(x=>x.date===d)?.protein??null);
-  const maxP=Math.max(goals.protein*1.3,...proteins.filter(Boolean));
+  const maxP=Math.max(pGoal*1.3,...proteins.filter(Boolean));
   const [padL,padR,padT,padB]=[8,16,8,20];
   const gW=W-padL-padR,gH=80-padT-padB;
-  const ty=padT+gH-(goals.protein/maxP)*gH;
+  const ty=padT+gH-(pGoal/maxP)*gH;
   ctx.strokeStyle='#6c63ff55';ctx.lineWidth=1;ctx.setLineDash([4,3]);
   ctx.beginPath();ctx.moveTo(padL,ty);ctx.lineTo(padL+gW,ty);ctx.stroke();ctx.setLineDash([]);
   const cellW=gW/days.length;
@@ -819,7 +833,7 @@ function drawMiniChart(){
   days.forEach((d,i)=>{
     const p=proteins[i];if(p==null)return;
     const x=padL+i*cellW+(cellW-barW)/2,h=(p/maxP)*gH,y=padT+gH-h;
-    ctx.fillStyle=p>=goals.protein?'#43e97b88':'#ff475788';
+    ctx.fillStyle=p<pGoal*0.85?'#ff475788':p<=pGoal*1.15?'#43e97b88':'#f9ca2488';
     ctx.beginPath();ctx.roundRect(x,y,barW,h,2);ctx.fill();
   });
   ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
@@ -1748,7 +1762,11 @@ function drawProteinChart(){
   canvas.width=W;canvas.height=160;ctx.clearRect(0,0,W,160);
   const recent=entries.filter(e=>e.protein!=null).slice(-30);
   if(!recent.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('No nutrition data yet',W/2,80);return}
-  const maxP=Math.max(goals.protein*1.4,...recent.map(e=>e.protein));
+  const pGoal2=getProteinGoal();
+  // Update chart title dynamically
+  const ptitle=document.getElementById('protein-chart-title');
+  if(ptitle)ptitle.textContent=`Protein vs Ziel (${pGoal2}g = LBM×2,0)`;
+  const maxP=Math.max(pGoal2*1.4,...recent.map(e=>e.protein));
   const[padL,padR,padT,padB]=[44,8,10,26];
   const gW=W-padL-padR,gH=160-padT-padB;
   ctx.strokeStyle='#2e2e45';ctx.lineWidth=1;
@@ -1756,14 +1774,14 @@ function drawProteinChart(){
     const y=padT+f*gH;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
     ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='right';ctx.fillText(Math.round(maxP*(1-f)),padL-4,y+3);
   });
-  const ty=padT+(1-(goals.protein/maxP))*gH;
+  const ty=padT+(1-(pGoal2/maxP))*gH;
   ctx.strokeStyle='#6c63ff88';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
   ctx.beginPath();ctx.moveTo(padL,ty);ctx.lineTo(padL+gW,ty);ctx.stroke();ctx.setLineDash([]);
   const cellW=gW/recent.length;
   const barW=Math.max(4,cellW*0.7);
   recent.forEach((e,i)=>{
     const x=padL+i*cellW+(cellW-barW)/2,h=(e.protein/maxP)*gH,y=padT+gH-h;
-    ctx.fillStyle=e.protein>=goals.protein?'#43e97b99':'#ff475799';
+    ctx.fillStyle=e.protein<pGoal2*0.85?'#ff475799':e.protein<=pGoal2*1.15?'#43e97b99':'#f9ca2499';
     ctx.beginPath();ctx.roundRect(x,y,barW,h,2);ctx.fill();
   });
   ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
@@ -2241,9 +2259,9 @@ function calcLongevityScore(){
   }
   const consistencyScore=weeklyRatios.length?Math.round(weeklyRatios.reduce((s,v)=>s+v,0)/weeklyRatios.length*100):0;
   // Nutrition: last 28 days
-  const proteinGoal=goals.protein||150;
+  const proteinGoal=getProteinGoal();
   const last28=Array.from({length:28},(_,i)=>{const d=new Date();d.setDate(d.getDate()-i);return d.toISOString().slice(0,10)});
-  const proteinDays=last28.filter(d=>{const e=entries.find(x=>x.date===d);return(e?.protein||0)>=proteinGoal}).length;
+  const proteinDays=last28.filter(d=>{const e=entries.find(x=>x.date===d);return(e?.protein||0)>=proteinGoal*0.85}).length;
   const nutritionScore=Math.round(proteinDays/28*100);
   const total=Math.round(bodyScore*0.4+consistencyScore*0.3+nutritionScore*0.3);
   return{total,body:bodyScore,consistency:consistencyScore,nutrition:nutritionScore};
@@ -2315,9 +2333,9 @@ function calcWeekScore(wsStr){
   const gymN=Math.min(wS.filter(s=>!s.type||s.type==='gym').length,3);
   const cardioN=Math.min(wS.filter(s=>s.type==='cardio').length,2);
   const bbN=Math.min(wS.filter(s=>s.type==='basketball').length,1);
-  const pG=goals.protein||150;
+  const pG=getProteinGoal();
   const wE=entries.filter(e=>e.date>=wsStr&&e.date<=weStr);
-  const protDays=Math.min(wE.filter(e=>(e.protein||0)>=pG).length,7);
+  const protDays=Math.min(wE.filter(e=>(e.protein||0)>=pG*0.85).length,7);
   const stepDays=Math.min(wE.filter(e=>(e.steps||0)>=8000).length,7);
   return Math.round(gymN/3*25+cardioN/2*20+bbN*15+protDays/7*25+stepDays/7*15);
 }
@@ -2591,7 +2609,9 @@ function loadSettings(){
   document.getElementById('goal-weight').value=goals.weight??'';
   document.getElementById('goal-kfa').value=goals.kfa??goals.bf??'';
   document.getElementById('goal-waist').value=goals.waist??'';
-  document.getElementById('goal-protein').value=goals.protein??'';
+  const pg=getProteinGoal();
+  const pgEl=document.getElementById('protein-goal-display');
+  if(pgEl)pgEl.innerHTML=`Protein-Ziel: <strong style="color:var(--green)">${pg}g/Tag</strong> <span style="font-size:11px">(LBM×2,0 = ${getLatestLBM()??'—'}×2,0)</span>`;
   document.getElementById('start-weight').value=start.weight??'';
   document.getElementById('start-kfa').value=start.kfa??start.bf??'';
   document.getElementById('start-waist').value=start.waist??'';
@@ -2621,7 +2641,7 @@ function saveGoals(){
   const pf=id=>{const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v};
   set(GOALS_KEY,{
     weight:pf('goal-weight'),kfa:pf('goal-kfa'),
-    waist:pf('goal-waist'),protein:pf('goal-protein'),vo2max:pf('goal-vo2max'),
+    waist:pf('goal-waist'),vo2max:pf('goal-vo2max'),
   });
   toast('Goals saved!');
 }
