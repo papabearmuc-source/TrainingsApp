@@ -543,13 +543,19 @@ function getLatestKFA(){
   return null;
 }
 function getLatestLBM(){
-  const entries=getEntries();
-  for(let i=entries.length-1;i>=0;i--){if(entries[i].lbm!=null)return entries[i].lbm;}
-  return null;
+  // 3-entry rolling average (same smoothing as BMR)
+  const lbmEntries=getEntries().filter(e=>e.lbm!=null);
+  if(!lbmEntries.length)return null;
+  const last3=lbmEntries.slice(-3);
+  return Math.round(last3.reduce((s,e)=>s+e.lbm,0)/last3.length*10)/10;
 }
 function getPrevLBM(){
-  const entries=getEntries().filter(e=>e.lbm!=null);
-  return entries.length>=2?entries[entries.length-2].lbm:null;
+  // Average of the 3 entries before the most recent one
+  const lbmEntries=getEntries().filter(e=>e.lbm!=null);
+  if(lbmEntries.length<2)return null;
+  const prev3=lbmEntries.slice(-4,-1);
+  if(!prev3.length)return null;
+  return Math.round(prev3.reduce((s,e)=>s+e.lbm,0)/prev3.length*10)/10;
 }
 
 function initExercises(){
