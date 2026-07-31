@@ -429,6 +429,35 @@
     .ab-name{font-size:22px}
   }
 
+  /* ── Wiegekarte: Messzeilen statt Kacheln ────────────────────────────
+     Ein Wiegeprotokoll listet Werte, es kachelt sie nicht. Jede Zeile traegt
+     Wert, Veraenderung und den Weg zum Ziel; Rot markiert ausschliesslich
+     Abweichung vom Ziel, nie Dekoration. */
+  .readout{border-top:2px solid var(--line); margin-bottom:20px}
+  .ro{display:grid; grid-template-columns:1fr auto minmax(62px,auto);
+      gap:14px; align-items:baseline; padding:12px 2px 10px;
+      border-bottom:1px solid var(--hair)}
+  .ro-lb{font-family:var(--fm); font-size:10px; letter-spacing:.15em;
+         text-transform:uppercase; color:var(--fg-2)}
+  .ro-vl{font-size:23px; font-weight:850; font-stretch:80%; letter-spacing:-.042em;
+         line-height:1; font-variant-numeric:tabular-nums; color:var(--fg)}
+  .ro-vl small{font-size:11px; font-weight:600; color:var(--fg-2); margin-left:3px; letter-spacing:0}
+  .ro-dl{font-family:var(--fm); font-size:11px; font-variant-numeric:tabular-nums;
+         text-align:right; color:var(--fg); letter-spacing:.03em}
+  .ro-dl.off{color:var(--accent-ink)}
+  .ro-dl.mute{color:var(--fg-2)}
+  .ro-track{grid-column:1/-1; height:3px; background:var(--surf-2);
+            position:relative; margin-top:9px}
+  .ro-fill{position:absolute; inset:0 auto 0 0; background:var(--fg)}
+  .ro-goal{position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--meet)}
+  .ro-hint{grid-column:1/-1; font-family:var(--fm); font-size:9.5px;
+           color:var(--fg-2); letter-spacing:.04em; margin-top:7px}
+  @media(max-width:460px){
+    .ro{grid-template-columns:1fr auto; gap:8px}
+    .ro-dl{grid-column:2; text-align:right}
+    .ro-vl{font-size:21px}
+  }
+
   @media(max-width:600px){
     .goals-grid{grid-template-columns:1fr 1fr}
     .page{padding:16px 12px 48px}
@@ -501,7 +530,7 @@
     <button class="btn btn-sm" onclick="exportData()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text)">JSON</button>
     <button class="btn-ghost btn-sm" onclick="dismissExportReminder()" style="font-size:18px;padding:2px 8px"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
   </div>
-  <div class="goals-grid" id="goals-grid"></div>
+  <div class="readout" id="goals-grid"></div>
   <div id="longevity-score-card" class="card"></div>
   <div id="aktivitaet-card" class="card"></div>
   <div class="summary-row" id="summary-row"></div>
@@ -1129,42 +1158,45 @@ function renderDashboard(){
     {key:'waist',label:'Taille',unit:'cm',goal:goals.waist,start:start.waist,lower:true,color:'var(--yellow)'},
     {key:'vo2max',label:'VO2Max',unit:'',goal:goals.vo2max,start:start.vo2max,lower:false,color:'var(--accent)'},
   ];
+  // Vorletzter Wert je Kennzahl — die Veraenderung ist auf einer Wiegekarte
+  // die eigentliche Information, nicht der Absolutwert.
+  const prevOf=k=>{const v=entries.filter(e=>e[k]!=null).map(e=>e[k]); return v.length>1?v[v.length-2]:null;};
+  const fmt=n=>String(n).replace('.',',');
   document.getElementById('goals-grid').innerHTML=metrics.map(m=>{
-    const cur=latest[m.key]??m.start,s=m.start,g=m.goal;
-    let pct,deltaLabel,barColor;
-    if(m.trendOnly){
-      // LBM: show trend vs prev entry, no goal tracking
-      pct=0;barColor='var(--border)';
-      if(cur==null){deltaLabel='<span style="color:var(--text2)">Körperdaten eintragen</span>';}
-      else if(prevLBM!=null){
-        const diff=+(cur-prevLBM).toFixed(1);
-        const col=diff>=0?'var(--green)':'var(--red)';
-        deltaLabel=`<span style="color:${col}">${diff>=0?'+':''}${diff} kg vs. vorheriger Eintrag</span>`;
-        pct=50; barColor=col;
-      }else{deltaLabel='<span style="color:var(--text2)">Erster Eintrag</span>';}
-    }else if(cur==null||s==null||g==null){
-      pct=0;barColor='var(--border)';
-      deltaLabel='<span style="color:var(--text2)">Set goal &amp; start in Settings</span>';
-    }else if(m.lower){
-      pct=s===g?100:Math.max(0,Math.min(100,((s-cur)/(s-g))*100));
-      const diff=+(cur-g).toFixed(1);
-      deltaLabel=diff<=0?`<span style="color:var(--green)">${ico('check',11)} Ziel erreicht!</span>`:`<span style="color:var(--text2)">${diff>0?'+':''}${diff}${m.unit} to go</span>`;
-      barColor=pct>=100?'var(--green)':pct>50?m.color:'var(--orange)';
-    }else{
-      pct=s===g?100:Math.max(0,Math.min(100,((cur-s)/(g-s))*100));
-      const diff=+(g-cur).toFixed(1);
-      deltaLabel=diff<=0?`<span style="color:var(--green)">${ico('check',11)} Ziel erreicht!</span>`:`<span style="color:var(--text2)">${diff}${m.unit} to go</span>`;
-      barColor=pct>=100?'var(--green)':pct>50?m.color:'var(--orange)';
+    const cur=latest[m.key]??m.start, s=m.start, g=m.goal;
+    const prev=m.key==='lbm'?prevLBM:prevOf(m.key);
+
+    // Delta: bei "lower" ist Abnahme gut, sonst Zunahme. Rot nur bei falscher Richtung.
+    let dl='<span class="ro-dl mute">&mdash;</span>';
+    if(cur!=null&&prev!=null){
+      const d=+(cur-prev).toFixed(1);
+      if(d===0) dl='<span class="ro-dl mute">&plusmn;0</span>';
+      else{
+        const gut = m.lower ? d<0 : d>0;
+        const pfeil = d<0 ? '\u25BE' : '\u25B4';
+        dl='<span class="ro-dl'+(gut?'':' off')+'">'+pfeil+' '+fmt(Math.abs(d))+'</span>';
+      }
     }
-    const targetLine=m.trendOnly?`<div class="target" style="color:var(--text2);font-size:11px">Trend: letzter Eintrag vs. davor</div>`
-      :`<div class="target">Ziel: ${g!=null?(m.lower?'≤':'≥')+' '+g+m.unit:'—'} · Start: ${s!=null?s+m.unit:'—'}</div>`;
-    return `<div class="goal-card">
-      <div class="label">${m.label}</div>
-      <div class="value" style="color:${m.color}">${cur!=null?cur+m.unit:'—'}</div>
-      ${targetLine}
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
-      <div class="delta">${deltaLabel}</div>
-    </div>`;
+
+    // Fortschritt Start -> Ziel
+    let track='';
+    if(cur!=null&&s!=null&&g!=null&&s!==g){
+      const pct=Math.max(0,Math.min(100, ((s-cur)/(s-g))*100 ));
+      track='<div class="ro-track"><span class="ro-fill" style="width:'+pct.toFixed(1)+'%"></span>'
+          + '<span class="ro-goal" style="left:100%"></span></div>'
+          + '<div class="ro-hint">Start '+fmt(s)+m.unit+' &middot; Ziel '+(m.lower?'max. ':'min. ')+fmt(g)+m.unit
+          + ' &middot; '+Math.round(pct)+'%</div>';
+    }else if(m.trendOnly){
+      track='<div class="ro-hint">Gleitender Schnitt der letzten drei Eintraege</div>';
+    }else if(cur!=null){
+      track='<div class="ro-hint">Ziel und Startwert in den Einstellungen hinterlegen</div>';
+    }
+
+    return '<div class="ro">'
+      + '<span class="ro-lb">'+escHtml(m.label)+'</span>'
+      + '<span class="ro-vl">'+(cur!=null?fmt(cur):'&mdash;')+(cur!=null&&m.unit?'<small>'+m.unit+'</small>':'')+'</span>'
+      + dl + track
+      + '</div>';
   }).join('');
 
   const now=new Date();
