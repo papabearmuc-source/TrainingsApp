@@ -1436,7 +1436,9 @@ function populatePlanDaySelect(){
   const sel=document.getElementById('sess-plan-day');
   sel.innerHTML='<option value="">— select —</option>';
   plans.forEach(p=>{
-    const activeLabel=p.active?' '+ico('star',11):'';
+    // <option> traegt kein Markup — hier muss reiner Text stehen, sonst
+    // erscheint der SVG-Quelltext im Auswahlfeld.
+    const activeLabel=p.active?' (aktiv)':'';
     p.days.forEach((d,i)=>{
       const opt=document.createElement('option');
       opt.value=p.id+':'+i;
@@ -1515,8 +1517,10 @@ function renderSessionExercises(){
   const container=document.getElementById('session-exercises');
   if(!currentSession.exercises.length){container.innerHTML='<div class="empty-state" style="padding:22px">Noch keine Uebung gewaehlt.</div>';return}
   container.innerHTML=currentSession.exercises.map((ex,ei)=>{
-    const unit=planUnitLabel(ex.unit||'kg');
-    const filled=s=>String(s.reps).trim()!==''&&String(s.weight).trim()!=='';
+    const unitId=ex.unit||'kg';
+    const bw=unitId==='none';
+    const unit=planUnitLabel(unitId);
+    const filled=s=>attemptDone(s,unitId);
     const done=ex.sets.filter(filled).length;
     const live=ex.sets.findIndex(s=>!filled(s));
     const lastEx=getLastExerciseData(ex.name);
@@ -1543,9 +1547,9 @@ function renderSessionExercises(){
       <div class="ab-exnote">
         <input class="ex-comment-input" data-ei="${ei}" type="text" placeholder="Notiz zur Uebung — z.B. unsauber ab der 8. Wdh" value="${escHtml(ex.comment)}" oninput="syncExComment(${ei},this.value)">
       </div>
-      <div class="ab-scale"><span>Versuche</span><span>${escHtml(unit)} &times; Wdh</span></div>
+      <div class="ab-scale"><span>Versuche</span><span>${bw?'Wiederholungen':escHtml(unit)+' &times; Wdh'}</span></div>
       <div class="ab-grid" id="sets-${ei}">
-        ${ex.sets.map((s,si)=>setRowHTML(ei,si,s,si===live)).join('')}
+        ${ex.sets.map((s,si)=>setRowHTML(ei,si,s,si===live,unitId)).join('')}
       </div>
       <div class="ab-add">
         <button class="btn btn-secondary btn-sm" onclick="addSet(${ei})">${ico('plus',11)} Versuch</button>
@@ -1554,14 +1558,32 @@ function renderSessionExercises(){
   }).join('');
 }
 
-function setRowHTML(ei,si,s,isLive){
-  const done=String(s.reps).trim()!==''&&String(s.weight).trim()!=='';
+// Ein Versuch gilt als geschafft, sobald eingetragen ist, was die Uebung
+// ueberhaupt misst. Bei Koerpergewicht (Pull-ups, Scapula) gibt es kein
+// Gewicht — dort reichen die Wiederholungen, sonst blieb der erste Versuch
+// dauerhaft markiert.
+function attemptDone(s,unit){
+  const reps=String(s?.reps??'').trim()!=='';
+  if((unit||'kg')==='none')return reps;
+  return reps&&String(s?.weight??'').trim()!=='';
+}
+
+function setRowHTML(ei,si,s,isLive,unit){
+  const bw=(unit||'kg')==='none';
+  const done=attemptDone(s,unit);
   const cls='att'+(done?' done':'')+(isLive?' live':'')+(s.comment?' has-note':'');
+  // Bei Koerpergewicht tragen die Wiederholungen die grosse Ziffer.
+  const gross=bw
+    ? `<input class="kg" type="number" min="0" step="1" inputmode="numeric" placeholder="&mdash;" value="${s.reps}" oninput="syncSet(${ei},${si},'reps',this.value)" aria-label="Wiederholungen, Versuch ${si+1}">`
+    : `<input class="kg" type="number" min="0" step="0.5" inputmode="decimal" placeholder="&mdash;" value="${s.weight}" oninput="syncSet(${ei},${si},'weight',this.value)" aria-label="Gewicht, Versuch ${si+1}">`;
+  const klein=bw
+    ? `<span class="rep">Wdh</span>`
+    : `<input class="rep" type="number" min="0" step="1" inputmode="numeric" placeholder="&mdash;" value="${s.reps}" oninput="syncSet(${ei},${si},'reps',this.value)" aria-label="Wiederholungen, Versuch ${si+1}">`;
   return `<div class="${cls}" id="set-${ei}-${si}">
     <span class="att-no">${si+1}</span>
     <button class="att-del" onclick="removeSet(${ei},${si})" title="Versuch entfernen">${ico('close',10)}</button>
-    <input class="kg"  type="number" min="0" step="0.5" inputmode="decimal" placeholder="&mdash;" value="${s.weight}" oninput="syncSet(${ei},${si},'weight',this.value)" aria-label="Gewicht, Versuch ${si+1}">
-    <input class="rep" type="number" min="0" step="1"   inputmode="numeric" placeholder="&mdash;" value="${s.reps}"   oninput="syncSet(${ei},${si},'reps',this.value)"   aria-label="Wiederholungen, Versuch ${si+1}">
+    ${gross}
+    ${klein}
     <input class="note" type="text" placeholder="Notiz" value="${escHtml(s.comment)}" oninput="syncSet(${ei},${si},'comment',this.value)" aria-label="Notiz, Versuch ${si+1}">
   </div>`;
 }
@@ -1589,7 +1611,7 @@ function syncSet(ei,si,field,val){
 function refreshBoard(ei){
   const ex=currentSession.exercises[ei]; if(!ex)return;
   const board=document.getElementById('sex-'+ei); if(!board)return;
-  const filled=s=>String(s.reps).trim()!==''&&String(s.weight).trim()!=='';
+  const filled=s=>attemptDone(s,ex.unit);
   const live=ex.sets.findIndex(s=>!filled(s));
   ex.sets.forEach((s,si)=>{
     const cell=document.getElementById('set-'+ei+'-'+si); if(!cell)return;
