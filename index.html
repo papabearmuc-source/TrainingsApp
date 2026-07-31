@@ -51,7 +51,7 @@
     --ground:#EFEDE6; --surf:#E6E3D8; --surf-2:#DEDBCF;
     --line:#14140F;   --hair:#D3CFC2;
     --fg:#14140F;     --fg-2:#59574D;
-    --on-meet:#FFFFFF;
+    --on-meet:#FFFFFF; --accent-ink:#C8102E;
     --ok:#2E5C2A; --warn:#7A5500; --bad:#C8102E;
   }
 
@@ -60,7 +60,7 @@
     --ground:#14140F; --surf:#1D1C16; --surf-2:#26251D;
     --line:#3A382E;   --hair:#2E2D26;
     --fg:#EFEDE6;     --fg-2:#A5A295;
-    --on-meet:#FFFFFF;
+    --on-meet:#FFFFFF; --accent-ink:#FF6B80;
     --ok:#9DCB6B; --warn:#E0A32E; --bad:#FF7285;
   }
 
@@ -70,7 +70,7 @@
   body{
     --bg:var(--ground); --surface:var(--surf); --surface2:var(--surf-2);
     --border:var(--hair); --text:var(--fg); --text2:var(--fg-2);
-    --accent:var(--meet);
+    --accent:var(--accent-ink);
     --green:var(--ok); --yellow:var(--warn); --orange:var(--warn); --red:var(--bad);
   }
 
@@ -353,8 +353,48 @@
 </head>
 <body>
 
+<!-- Icon-Sprite: ein Strichgewicht (1.8), runde Enden, 24er-Raster.
+     Ersetzt saemtliche Emoji — die sahen auf jedem Geraet anders aus. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<g id="i-base" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></g>
+<symbol id="i-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9v6M7.5 5.5v13M16.5 5.5v13M20.5 9v6M7.5 12h9"/></symbol>
+<symbol id="i-gym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5v5M7 6.5v11M17 6.5v11M20.5 9.5v5M7 12h10"/></symbol>
+<symbol id="i-crossfit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8.5a3 3 0 0 1 6 0"/><path d="M12 8.5c-3.2 0-5.8 2.9-5.8 6.4 0 1.9.5 3.4 1.1 4.3h9.4c.6-.9 1.1-2.4 1.1-4.3 0-3.5-2.6-6.4-5.8-6.4Z"/></symbol>
+<symbol id="i-cardio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.8" cy="16.2" r="3.3"/><circle cx="18.2" cy="16.2" r="3.3"/><path d="m5.8 16.2 4.4-7.2h4.2l-2.4 7.2M13.4 9l2.2-2.3M9.6 9h5.6"/></symbol>
+<symbol id="i-basketball" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 3.6v16.8M3.6 12h16.8M6.2 6.2a11.4 11.4 0 0 0 0 11.6M17.8 6.2a11.4 11.4 0 0 1 0 11.6"/></symbol>
+<symbol id="i-rest" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.8A8.6 8.6 0 0 1 9.2 4 8.6 8.6 0 1 0 20 14.8Z"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2s5.2 4.6 5.2 9.2a5.2 5.2 0 0 1-10.4 0c0-1.9.9-3.4 1.7-4.5.3 1.1 1 1.9 1.8 2.3C10.7 7.9 12 5.6 12 3.2Z"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4.8a4 4 0 0 1-8 0V4ZM8 6H5.4v1.1A3.4 3.4 0 0 0 8 10.4M16 6h2.6v1.1a3.4 3.4 0 0 1-2.6 3.3M12 12.8V17M8.6 20h6.8"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.6S5 15 5 10.4A3.9 3.9 0 0 1 12 7.8a3.9 3.9 0 0 1 7 2.6c0 4.6-7 9.2-7 9.2Z"/></symbol>
+<symbol id="i-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12.5h3.2l2-4.4 3.2 9 3-11.2 2.4 6.6h5.2"/></symbol>
+<symbol id="i-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.4 21 19.6H3L12 4.4ZM12 10.2v4"/><circle cx="12" cy="16.8" r=".95" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.8v10.4m0 0 4-4m-4 4-4-4M4.5 17.4v1.4a1.2 1.2 0 0 0 1.2 1.2h12.6a1.2 1.2 0 0 0 1.2-1.2v-1.4"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.6 4.6 4.6L19 6.8"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 4.8h11.4l3 3v11.4H4.8V4.8ZM9 4.8v4.8h6V4.8M8 19.2v-5h8v5"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.8" y="10.4" width="14.4" height="9" rx="1.7"/><path d="M8.4 10.4V7.8a3.6 3.6 0 0 1 7.2 0v2.6"/></symbol>
+<symbol id="i-steps" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4.2c1.4 0 2.2 1.2 2.2 2.8 0 1.5-.5 2.6-.5 3.7 0 1 .4 1.6.4 2.4 0 1.1-.8 1.7-2.1 1.7s-2.1-.7-2.1-1.9c0-1 .3-1.6.3-2.6 0-1.2-.6-2.2-.6-3.5 0-1.5.9-2.6 2.4-2.6ZM16 8.6c1.4 0 2.3 1.1 2.3 2.6 0 1.3-.6 2.3-.6 3.5 0 1 .3 1.6.3 2.6 0 1.2-.8 1.9-2.1 1.9s-2.1-.6-2.1-1.7c0-.8.4-1.4.4-2.4 0-1.1-.5-2.2-.5-3.7 0-1.6.9-2.8 2.3-2.8Z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 6.8v5.4l3.4 2"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.4v15.2M6.6 19.6h10.8M4 8.4h16M4 8.4 1.8 13.6h4.4L4 8.4ZM20 8.4l-2.2 5.2h4.4L20 8.4Z"/></symbol>
+<symbol id="i-ruler" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 14.6 14.6 3.4l6 6L9.4 20.6l-6-6ZM7 11.2l2 2M10.2 8l2 2M13.4 4.8l2 2"/></symbol>
+<symbol id="i-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 8.8 12 4.6l7.2 4.2v6.4L12 19.4l-7.2-4.2V8.8ZM12 12.9v6.5M4.8 8.8 12 12.9l7.2-4.1"/></symbol>
+<symbol id="i-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 19.6h4L18.9 9.1a2.1 2.1 0 0 0-3-3L5.4 16.6l-1 3ZM14.4 6.6l3 3"/></symbol>
+<symbol id="i-timer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.6" r="6.9"/><path d="M12 10.2v3.4l2.4 1.5M9.6 3.4h4.8M12 3.4v3.3"/></symbol>
+<symbol id="i-hourglass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 4.2h10.4M6.8 19.8h10.4M7.6 4.2c0 4 4.4 5.6 4.4 7.8s-4.4 3.8-4.4 7.8M16.4 4.2c0 4-4.4 5.6-4.4 7.8s4.4 3.8 4.4 7.8"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.8 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 17.1l-5.2 2.7 1-5.8L3.6 9.9l5.8-.8L12 3.8Z"/></symbol>
+<symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="currentColor"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6.2 6.2 11.6 11.6M17.8 6.2 6.2 17.8"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.4v13.2L19 12 8 5.4Z" fill="currentColor"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.6" fill="currentColor"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15m0 0-5.4-5.4M19 12l-5.4 5.4"/></symbol>
+<symbol id="i-return" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5.6v4.2a4 4 0 0 1-4 4H5m0 0 4.4-4.4M5 13.8l4.4 4.4"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5.2v13.6M5.2 12h13.6"/></symbol>
+<symbol id="i-chip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5.2" y="7.6" width="13.6" height="10.4" rx="2.2"/><path d="M12 4.2v3.4M9.6 12.4v1.6M14.4 12.4v1.6M2.4 11.6h2.8M18.8 11.6h2.8"/></symbol>
+<symbol id="i-plate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.2"/></symbol>
+</defs></svg>
+
+
 <nav>
-  <span class="nav-title">💪 TrackFit</span>
+  <span class="nav-title"><svg class="icon" aria-hidden="true"><use href="#i-mark"></use></svg> TrackFit</span>
   <button class="active" onclick="showPage('dashboard')">Dashboard</button>
   <button onclick="showPage('log')">Body Log</button>
   <button onclick="showPage('workout')">Workout</button>
@@ -368,18 +408,15 @@
 <!-- ══════════════ DASHBOARD ══════════════ -->
 <div id="page-dashboard" class="page active">
   <div id="export-reminder-banner" style="display:none;background:color-mix(in srgb, var(--yellow) 10%, transparent);border:1px solid color-mix(in srgb, var(--yellow) 45%, transparent);border-radius:10px;padding:12px 16px;margin-bottom:16px;align-items:center;gap:12px;flex-wrap:wrap">
-    <span style="font-size:20px">⚠️</span>
+    <span style="color:var(--yellow);display:flex"><svg class="icon" style="width:20px;height:20px" aria-hidden="true"><use href="#i-warning"></use></svg></span>
     <span style="flex:1;font-size:14px;color:var(--fg);min-width:180px">Letzter Backup vor mehr als 14 Tagen — sichere deine Daten!</span>
-    <button class="btn btn-sm" onclick="exportExcel()" style="background:var(--yellow);color:#fff">📥 Excel exportieren</button>
+    <button class="btn btn-sm" onclick="exportExcel()" style="background:var(--yellow);color:#fff"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-download"></use></svg> Excel exportieren</button>
     <button class="btn btn-sm" onclick="exportData()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text)">JSON</button>
-    <button class="btn-ghost btn-sm" onclick="dismissExportReminder()" style="font-size:18px;padding:2px 8px">✕</button>
+    <button class="btn-ghost btn-sm" onclick="dismissExportReminder()" style="font-size:18px;padding:2px 8px"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
   </div>
   <div class="goals-grid" id="goals-grid"></div>
   <div id="longevity-score-card" class="card"></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-    <div id="aktivitaet-card" class="card" style="margin-bottom:0"></div>
-    <div id="weekly-score-card" class="card" style="margin-bottom:0"></div>
-  </div>
+  <div id="aktivitaet-card" class="card"></div>
   <div class="summary-row" id="summary-row"></div>
   <div class="card"><h3>This Week</h3><div id="week-summary"></div></div>
   <div class="card"><h3>Last 14 Days — Protein</h3><canvas id="mini-chart" height="80"></canvas></div>
@@ -428,8 +465,8 @@
 <div id="page-workout" class="page">
 
   <!-- Active-session restore banner -->
-  <div id="active-sess-banner" style="display:none;background:#43e97b15;border:1px solid #43e97b55;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:14px;color:var(--green);display:none">
-    ✅ Active session restored — continue where you left off
+  <div id="active-sess-banner" style="display:none;background:color-mix(in srgb, var(--green) 8%, transparent);border:1px solid color-mix(in srgb, var(--green) 33%, transparent);border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:14px;color:var(--green);display:none">
+    <svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-check"></use></svg> Active session restored — continue where you left off
   </div>
 
   <div class="card">
@@ -448,9 +485,9 @@
 
       <!-- Session control strip -->
       <div id="gym-session-ctrl" style="margin-bottom:16px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button id="gym-start-btn" class="btn btn-sm" style="background:var(--green);color:#111">▶ Start Session</button>
-        <button id="gym-end-btn" class="btn btn-sm btn-danger" style="display:none">⏹ End Session</button>
-        <span id="gym-active-badge" style="display:none;background:#43e97b22;border:1px solid #43e97b55;border-radius:6px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--green);letter-spacing:.5px">● SESSION ACTIVE</span>
+        <button id="gym-start-btn" class="btn btn-sm" style="background:var(--green);color:#111"><svg class="icon" style="width:12px;height:12px" aria-hidden="true"><use href="#i-play"></use></svg> Start Session</button>
+        <button id="gym-end-btn" class="btn btn-sm btn-danger" style="display:none"><svg class="icon" style="width:12px;height:12px" aria-hidden="true"><use href="#i-stop"></use></svg> End Session</button>
+        <span id="gym-active-badge" style="display:none;background:color-mix(in srgb, var(--green) 13%, transparent);border:1px solid color-mix(in srgb, var(--green) 33%, transparent);border-radius:6px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--green);letter-spacing:.5px">● SESSION ACTIVE</span>
       </div>
 
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px">
@@ -498,7 +535,7 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn" onclick="saveSession()">💾 Save Session</button>
+      <button class="btn" onclick="saveSession()"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-save"></use></svg> Save Session</button>
       <button class="btn btn-secondary" onclick="clearSession()">Clear</button>
     </div>
   </div>
@@ -572,7 +609,7 @@
       <div class="chips">
         <div class="chip selected" data-hist="metrics" onclick="switchHistTab(this)">Body Metrics</div>
         <div class="chip" data-hist="sessions" onclick="switchHistTab(this)">Workout Sessions</div>
-        <div class="chip" data-hist="records" onclick="switchHistTab(this)">🏆 Records</div>
+        <div class="chip" data-hist="records" onclick="switchHistTab(this)"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-trophy"></use></svg> Records</div>
       </div>
     </div>
     <div id="hist-filters-metrics" style="display:flex;gap:10px;flex-wrap:wrap">
@@ -652,7 +689,7 @@
     <div style="color:var(--text2);font-size:12px">Your API key is stored locally on this device only. It is never sent anywhere except directly to the selected AI provider.</div>
     <div class="btn-row"><button class="btn" onclick="saveAIKey()">Save API Key</button></div>
     <div class="section-title" style="margin-top:18px;cursor:pointer;user-select:none" onclick="toggleSysPrompt()">
-      System Prompt <span id="sysprompt-arrow" style="float:right;font-size:10px">▶ expand</span>
+      System Prompt <span id="sysprompt-arrow" style="float:right;font-size:10px"><svg class="icon" style="width:10px;height:10px" aria-hidden="true"><use href="#i-arrow-right"></use></svg> expand</span>
     </div>
     <div id="sysprompt-area" style="display:none;margin-top:8px">
       <div class="field">
@@ -667,15 +704,15 @@
   <div class="card">
     <h3>Data</h3>
     <div class="btn-row">
-      <button class="btn" onclick="exportExcel()" style="background:var(--yellow);color:#fff">📥 Excel Export</button>
+      <button class="btn" onclick="exportExcel()" style="background:var(--yellow);color:#fff"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-download"></use></svg> Excel Export</button>
       <button class="btn btn-secondary" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Import JSON</button>
       <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)">
       <button class="btn btn-secondary" onclick="showQR()">&#x2399; QR Export</button>
     </div>
-    <div style="color:var(--text2);font-size:12px;margin-top:10px">🔒 API keys are never included in exports.</div>
+    <div style="color:var(--text2);font-size:12px;margin-top:10px"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-lock"></use></svg> API keys are never included in exports.</div>
   </div>
-  <div class="card" style="border-color:#ff475733">
+  <div class="card" style="border-color:color-mix(in srgb, var(--red) 20%, transparent)">
     <h3 style="color:var(--red)">Danger Zone</h3>
     <div class="btn-row"><button class="btn btn-danger" onclick="clearAllData()">Delete All Data</button></div>
   </div>
@@ -720,11 +757,11 @@ const PLAN_UNITS = [
 const planUnitLabel = u => (PLAN_UNITS.find(x=>x.id===u)||PLAN_UNITS[0]).label;
 
 const DEFAULT_WORKOUT_TYPES = [
-  {id:'gym',        label:'Gym / Cleverfit',    icon:'🏋️'},
-  {id:'crossfit',   label:'CrossFit',            icon:'🤸'},
-  {id:'cardio',     label:'Cardio / Ergometer', icon:'🚴'},
-  {id:'basketball', label:'Basketball',          icon:'🏀'},
-  {id:'rest',       label:'Rest Day',            icon:'😴'},
+  {id:'gym',        label:'Gym / Cleverfit',    icon:'gym'},
+  {id:'crossfit',   label:'CrossFit',            icon:'crossfit'},
+  {id:'cardio',     label:'Cardio / Ergometer', icon:'cardio'},
+  {id:'basketball', label:'Basketball',          icon:'basketball'},
+  {id:'rest',       label:'Rest Day',            icon:'rest'},
 ];
 
 let sessionActive = false;
@@ -830,6 +867,24 @@ function initExercises(){
 // ════════════════════════════════════════════════════════
 // Nav
 // ════════════════════════════════════════════════════════
+// Icons: ein gezeichnetes Set statt Emoji. Emoji sahen auf jedem Geraet anders
+// aus und liessen sich nicht einfaerben; diese folgen currentColor und damit
+// dem Register. ICON_BY_EMOJI faengt Alt-Daten ab, in denen im icon-Feld noch
+// ein Emoji steht (eigene Workout-Typen behalten ihres).
+const ICON_BY_TYPE = {gym:'gym',crossfit:'crossfit',cardio:'cardio',basketball:'basketball',rest:'rest'};
+const ICON_BY_EMOJI = {'\u{1F3CB}':'gym','\u{1F938}':'crossfit','\u{1F6B4}':'cardio','\u{1F3C0}':'basketball','\u{1F634}':'rest','\u{1F3C3}':'steps','\u{1F3CA}':'cardio'};
+function ico(id,size){
+  const s = size ? ' style="width:'+size+'px;height:'+size+'px"' : '';
+  return '<svg class="icon"'+s+' aria-hidden="true"><use href="#i-'+id+'"></use></svg>';
+}
+function typeIco(t,size){
+  const id  = (typeof t === 'string') ? t : (t && t.id);
+  const raw = ((typeof t === 'object' && t && t.icon) || '').replace(/\uFE0F/g,'');
+  const key = ICON_BY_TYPE[id] || ICON_BY_EMOJI[raw];
+  if (key) return ico(key,size);
+  return raw ? '<span style="font-size:'+(size||16)+'px;line-height:1">'+raw+'</span>' : ico('gym',size);
+}
+
 // Canvas kennt keine CSS-Variablen — Token müssen zur Zeichenzeit aufgelöst
 // werden, damit die Diagramme dem Register folgen statt fest verdrahtet zu sein.
 function pal(name){
@@ -1006,12 +1061,12 @@ function renderDashboard(){
     }else if(m.lower){
       pct=s===g?100:Math.max(0,Math.min(100,((s-cur)/(s-g))*100));
       const diff=+(cur-g).toFixed(1);
-      deltaLabel=diff<=0?`<span style="color:var(--green)">✓ Ziel erreicht!</span>`:`<span style="color:var(--text2)">${diff>0?'+':''}${diff}${m.unit} to go</span>`;
+      deltaLabel=diff<=0?`<span style="color:var(--green)">${ico('check',11)} Ziel erreicht!</span>`:`<span style="color:var(--text2)">${diff>0?'+':''}${diff}${m.unit} to go</span>`;
       barColor=pct>=100?'var(--green)':pct>50?m.color:'var(--orange)';
     }else{
       pct=s===g?100:Math.max(0,Math.min(100,((cur-s)/(g-s))*100));
       const diff=+(g-cur).toFixed(1);
-      deltaLabel=diff<=0?`<span style="color:var(--green)">✓ Ziel erreicht!</span>`:`<span style="color:var(--text2)">${diff}${m.unit} to go</span>`;
+      deltaLabel=diff<=0?`<span style="color:var(--green)">${ico('check',11)} Ziel erreicht!</span>`:`<span style="color:var(--text2)">${diff}${m.unit} to go</span>`;
       barColor=pct>=100?'var(--green)':pct>50?m.color:'var(--orange)';
     }
     const targetLine=m.trendOnly?`<div class="target" style="color:var(--text2);font-size:11px">Trend: letzter Eintrag vs. davor</div>`
@@ -1052,10 +1107,10 @@ function renderDashboard(){
 
   const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const weekDates=Array.from({length:7},(_,i)=>{const d=new Date(weekStart);d.setDate(d.getDate()+i);return d.toISOString().slice(0,10)});
-  const typeIcon={gym:'🏋️',crossfit:'🤸',cardio:'🚴',basketball:'🏀',rest:'😴'};
+  
   document.getElementById('week-summary').innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">`+weekDates.map((d,i)=>{
     const daySessions=sessions.filter(s=>s.date===d);
-    const icons=daySessions.map(s=>typeIcon[s.type||'gym']||'🏋️').join('');
+    const icons=daySessions.map(s=>typeIco(s.type||'gym',15)).join('');
     const dayDur=daySessions.reduce((sum,s)=>sum+((s.type==='gym'?s.gymDuration:s.duration)||0),0);
     const workoutCals=daySessions.reduce((sum,s)=>sum+((s.type==='gym'?s.gymCals:s.calories)||0),0);
     const entry=entries.find(x=>x.date===d);
@@ -1066,14 +1121,13 @@ function renderDashboard(){
       <div style="font-size:11px;color:var(--text2)">${d.slice(5)}</div>
       <div style="font-size:18px;min-height:22px">${icons||''}</div>
       ${dayDur?`<div style="font-size:11px;color:var(--text2)">${dayDur}min</div>`:''}
-      ${totalDayCals?`<div style="font-size:11px;color:var(--orange)">🔥${totalDayCals}</div>`:''}
+      ${totalDayCals?`<div style="font-size:11px;color:var(--orange)">${ico('flame',11)}${totalDayCals}</div>`:''}
       ${entry?.protein?`<div style="font-size:11px;color:${proteinColor(entry.protein,getProteinGoal())}">${entry.protein}g</div>`:''}
-      ${entry?.steps?`<div style="font-size:11px;color:var(--text2)">👣${entry.steps.toLocaleString()}</div>`:''}
+      ${entry?.steps?`<div style="font-size:11px;color:var(--text2)">${ico('steps',11)}${entry.steps.toLocaleString()}</div>`:''}
     </div>`;
   }).join('')+`</div>`;
   renderLongevityScore();
   renderAktivitaetCard();
-  renderWeeklyScore();
   drawMiniChart();
   // AI Coach button
   const aiArea=document.getElementById('ai-coach-area');
@@ -1189,7 +1243,7 @@ function renderWorkoutTypeChips(){
   const types=getWorkoutTypes();
   const cur=currentSession.type||'gym';
   container.innerHTML=types.map(t=>
-    `<div class="chip sess-type-chip${t.id===cur?' selected':''}" data-type="${escHtml(t.id)}">${t.icon} ${escHtml(t.label)}</div>`
+    `<div class="chip sess-type-chip${t.id===cur?' selected':''}" data-type="${escHtml(t.id)}">${typeIco(t,14)} ${escHtml(t.label)}</div>`
   ).join('');
   container.querySelectorAll('.sess-type-chip').forEach(chip=>{
     chip.addEventListener('click',()=>setSessionType(chip.dataset.type));
@@ -1211,7 +1265,7 @@ function setSessionType(type){
     if(ref){
       const data=getLastCardioData(type);
       ref.innerHTML=data
-        ?`<div style="color:var(--text2);font-size:12px;padding:8px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">↩ ${data}</div>`
+        ?`<div style="color:var(--text2);font-size:12px;padding:8px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">${ico('return',11)} ${data}</div>`
         :'';
     }
   }
@@ -1258,7 +1312,7 @@ function populatePlanDaySelect(){
   const sel=document.getElementById('sess-plan-day');
   sel.innerHTML='<option value="">— select —</option>';
   plans.forEach(p=>{
-    const activeLabel=p.active?' ★':'';
+    const activeLabel=p.active?' '+ico('star',11):'';
     p.days.forEach((d,i)=>{
       const opt=document.createElement('option');
       opt.value=p.id+':'+i;
@@ -1338,15 +1392,15 @@ function renderSessionExercises(){
   if(!currentSession.exercises.length){container.innerHTML='<div class="empty-state" style="padding:20px">No exercises added yet.</div>';return}
   container.innerHTML=currentSession.exercises.map((ex,ei)=>{
     const lastEx=getLastExerciseData(ex.name);
-    const lastHint=lastEx?`<div style="color:var(--text2);font-size:11px;margin-top:3px;letter-spacing:.1px">↩ Last: ${lastEx}</div>`:'';
+    const lastHint=lastEx?`<div style="color:var(--text2);font-size:11px;margin-top:3px;letter-spacing:.1px">${ico('return',11)} Last: ${lastEx}</div>`:'';
     const lastNote=getLastExerciseComment(ex.name);
-    const lastNoteHint=lastNote?`<div style="color:var(--yellow);font-size:11px;margin-top:5px;padding:5px 9px;background:#f9ca2415;border-left:2px solid var(--yellow);border-radius:4px;line-height:1.4">💭 <span style="color:var(--text)">${escHtml(lastNote.text)}</span> <span style="color:var(--text2);font-style:italic;margin-left:4px">(${lastNote.date})</span></div>`:'';
+    const lastNoteHint=lastNote?`<div style="color:var(--yellow);font-size:11px;margin-top:5px;padding:5px 9px;background:color-mix(in srgb, var(--yellow) 8%, transparent);border-left:2px solid var(--yellow);border-radius:4px;line-height:1.4">💭 <span style="color:var(--text)">${escHtml(lastNote.text)}</span> <span style="color:var(--text2);font-style:italic;margin-left:4px">(${lastNote.date})</span></div>`:'';
     const hasPR=ex.sets.some(s=>isCurrentSetPR(ex.name,s.weight,s.reps,ex.unit));
     return`
     <div class="session-exercise" id="sex-${ei}">
       <div class="session-ex-header">
         <div style="flex:1;min-width:0">
-          <span class="session-ex-name">${ex.name}</span>${hasPR?` <span style="background:#f9ca2422;border:1px solid #f9ca2455;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;color:var(--yellow);vertical-align:middle">🏆 PR</span>`:''}
+          <span class="session-ex-name">${ex.name}</span>${hasPR?` <span style="background:color-mix(in srgb, var(--yellow) 13%, transparent);border:1px solid color-mix(in srgb, var(--yellow) 33%, transparent);border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;color:var(--yellow);vertical-align:middle">🏆 PR</span>`:''}
           <span class="session-ex-group">${ex.group}</span>
           ${lastHint}
           ${lastNoteHint}
@@ -1385,7 +1439,7 @@ function setRowHTML(ei,si,s){
     <td class="col-reps"><input type="number" min="0" step="1" placeholder="—" value="${s.reps}" oninput="syncSet(${ei},${si},'reps',this.value)"></td>
     <td class="col-weight"><input type="number" min="0" step="0.5" placeholder="—" value="${s.weight}" oninput="syncSet(${ei},${si},'weight',this.value)"></td>
     <td class="col-comment"><input type="text" placeholder="note…" value="${escHtml(s.comment)}" oninput="syncSet(${ei},${si},'comment',this.value)"></td>
-    <td class="col-del"><button class="btn-ghost" onclick="removeSet(${ei},${si})" title="Remove set">✕</button></td>
+    <td class="col-del"><button class="btn-ghost" onclick="removeSet(${ei},${si})" title="Remove set"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button></td>
   </tr>`;
 }
 
@@ -1499,7 +1553,7 @@ function endGymSession(){
     <h2 style="margin-bottom:12px">End Session</h2>
     <p style="color:var(--text2);margin-bottom:20px">Save this session to history and clear the active session?</p>
     <div class="btn-row">
-      <button id="modal-end-save-btn" class="btn">💾 Save Session</button>
+      <button id="modal-end-save-btn" class="btn"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-save"></use></svg> Save Session</button>
       <button id="modal-end-cancel-btn" class="btn btn-secondary">Keep Editing</button>
     </div>`);
   document.getElementById('modal-end-cancel-btn').addEventListener('click',closeModal);
@@ -1541,7 +1595,7 @@ function saveSession(){
   const typeLabel={gym:'Gym session',crossfit:'CrossFit session',cardio:'Cardio session',basketball:'Basketball session',rest:'Rest day'}[type]||'Session';
   toast(typeLabel+' saved!');
   if(newPRs.length){
-    setTimeout(()=>toast('🏆 PR: '+newPRs.map(p=>`${p.name} (${p.weight}kg×${p.reps})`).join(', '),'var(--yellow)'),2400);
+    setTimeout(()=>toast('PR: '+newPRs.map(p=>`${p.name} (${p.weight}kg×${p.reps})`).join(', '),'var(--yellow)'),2400);
   }
   currentSession={date:today(),type:'gym',comment:'',exercises:[],duration:null,avgHR:null,calories:null,intensity:'',gymDuration:null,gymAvgHR:null,gymCals:null};
   renderWorkoutPage();
@@ -1551,10 +1605,10 @@ function renderRecentSessions(){
   const sessions=getSessions().slice().reverse().slice(0,10);
   const container=document.getElementById('recent-sessions');
   if(!sessions.length){container.innerHTML='<div class="empty-state">No sessions logged yet.</div>';return}
-  const typeIcon={gym:'🏋️',crossfit:'🤸',cardio:'🚴',basketball:'🏀',rest:'😴'};
+  
   container.innerHTML=sessions.map(s=>{
     const type=s.type||'gym';
-    const icon=typeIcon[type]||'🏋️';
+    const icon=typeIco(type,16);
     let body='';
     if(type==='gym'){
       const exHTML=s.exercises.map(ex=>{
@@ -1567,14 +1621,14 @@ function renderRecentSessions(){
       }).join('');
       const summParts=[];
       if(s.gymDuration) summParts.push(`<span class="tag">${s.gymDuration} min</span>`);
-      if(s.gymAvgHR)    summParts.push(`<span class="tag">❤️ ${s.gymAvgHR} bpm</span>`);
-      if(s.gymCals)     summParts.push(`<span class="tag">🔥 ${s.gymCals} kcal</span>`);
+      if(s.gymAvgHR)    summParts.push(`<span class="tag">${ico('heart',11)} ${s.gymAvgHR} bpm</span>`);
+      if(s.gymCals)     summParts.push(`<span class="tag">${ico('flame',11)} ${s.gymCals} kcal</span>`);
       body=exHTML+(summParts.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${summParts.join('')}</div>`:'');
     }else if(type==='cardio'||type==='basketball'){
       const parts=[];
       if(s.duration) parts.push(`<span class="tag">${s.duration} min</span>`);
-      if(s.avgHR)    parts.push(`<span class="tag">❤️ ${s.avgHR} bpm</span>`);
-      if(s.calories) parts.push(`<span class="tag">🔥 ${s.calories} kcal</span>`);
+      if(s.avgHR)    parts.push(`<span class="tag">${ico('heart',11)} ${s.avgHR} bpm</span>`);
+      if(s.calories) parts.push(`<span class="tag">${ico('flame',11)} ${s.calories} kcal</span>`);
       if(s.intensity)parts.push(`<span class="tag">${s.intensity}</span>`);
       body=`<div style="display:flex;flex-wrap:wrap;gap:6px">${parts.join('')}</div>`;
     }else{
@@ -1587,7 +1641,7 @@ function renderRecentSessions(){
           <span style="margin-left:8px">${icon}</span>
           ${s.comment?`<span style="color:var(--text2);font-size:13px;margin-left:8px">${s.comment}</span>`:''}
         </div>
-        <button class="delete-btn" onclick="deleteSession(${s.id})">✕</button>
+        <button class="delete-btn" onclick="deleteSession(${s.id})"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
       </div>
       ${body}
     </div>`;
@@ -1714,7 +1768,7 @@ function planCardHTML(p){
         <span style="font-weight:600">${d.label}</span>
         <div style="display:flex;gap:6px">
           <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();renameDayModal(${p.id},${di})">Rename</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();removePlanDay(${p.id},${di})">✕</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();removePlanDay(${p.id},${di})"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
         </div>
       </div>
       <div class="plan-day-body" id="plan-day-body-${p.id}-${di}">
@@ -1738,7 +1792,7 @@ function planCardHTML(p){
               ${valueField}
               <button class="btn-ghost" onclick="movePlanEx(${p.id},${di},${pei},-1)" title="Nach oben"${pei===0?' disabled style="opacity:.3"':''}>↑</button>
               <button class="btn-ghost" onclick="movePlanEx(${p.id},${di},${pei},1)" title="Nach unten"${pei===d.exercises.length-1?' disabled style="opacity:.3"':''}>↓</button>
-              <button class="btn-ghost" onclick="removePlanEx(${p.id},${di},${pei})" title="Entfernen">✕</button>
+              <button class="btn-ghost" onclick="removePlanEx(${p.id},${di},${pei})" title="Entfernen"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
             </div>
           </div>`;
         }).join('')}
@@ -1896,9 +1950,9 @@ function updatePlanEx(planId,di,ei,field,val){
 // Charts
 // ════════════════════════════════════════════════════════
 const METRICS=[
-  {key:'weight',label:'Gewicht (kg)',color:'var(--accent)'},
-  {key:'kfa',label:'KFA (%)',color:'var(--red)'},
-  {key:'waist',label:'Taille (cm)',color:'var(--yellow)'},
+  {key:'weight',label:'Gewicht (kg)',token:'--accent'},
+  {key:'kfa',label:'KFA (%)',token:'--red'},
+  {key:'waist',label:'Taille (cm)',token:'--yellow'},
 ];
 let activeMetric='weight';
 
@@ -1990,17 +2044,17 @@ function drawMetricChart(){
     ctx.fillText((maxV-i/4*(maxV-minV)).toFixed(1),padL-4,y+3);
   }
   const gy=toY(goalVal);
-  ctx.strokeStyle=m.color+'55';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+  ctx.strokeStyle=palA(m.token,.33);ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
   ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+gW,gy);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle=m.color+'99';ctx.font='10px Sometype Mono';ctx.textAlign='left';ctx.fillText('Ziel',padL+4,gy-4);
+  ctx.fillStyle=palA(m.token,.6);ctx.font='10px Sometype Mono';ctx.textAlign='left';ctx.fillText('Ziel',padL+4,gy-4);
   const grad=ctx.createLinearGradient(0,padT,0,padT+gH);
-  grad.addColorStop(0,m.color+'33');grad.addColorStop(1,m.color+'05');
+  grad.addColorStop(0,palA(m.token,.2));grad.addColorStop(1,palA(m.token,.02));
   ctx.beginPath();ctx.moveTo(toX(0),padT+gH);
   entries.forEach((_,i)=>ctx.lineTo(toX(i),toY(vals[i])));
   ctx.lineTo(toX(entries.length-1),padT+gH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-  ctx.strokeStyle=m.color;ctx.lineWidth=2.5;ctx.lineJoin='round';
+  ctx.strokeStyle=pal(m.token);ctx.lineWidth=2.5;ctx.lineJoin='round';
   ctx.beginPath();entries.forEach((_,i)=>i===0?ctx.moveTo(toX(i),toY(vals[i])):ctx.lineTo(toX(i),toY(vals[i])));ctx.stroke();
-  entries.forEach((_,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(vals[i]),3.5,0,Math.PI*2);ctx.fillStyle=m.color;ctx.fill()});
+  entries.forEach((_,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(vals[i]),3.5,0,Math.PI*2);ctx.fillStyle=pal(m.token);ctx.fill()});
   ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='center';
   const step=Math.max(1,Math.floor(entries.length/8));
   entries.forEach((e,i)=>{if(i%step===0||i===entries.length-1)ctx.fillText(e.date.slice(5),toX(i),220-padB+14)});
@@ -2168,18 +2222,18 @@ function drawWorkoutChart(){
     ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
     ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='right';ctx.fillText(v,padL-4,y+3);
   });
-  const types=[{key:'gym',color:'var(--accent)'},{key:'cardio',color:'var(--green)'},{key:'basketball',color:'var(--yellow)'}];
+  const types=[{key:'gym',token:'--accent'},{key:'cardio',token:'--green'},{key:'basketball',token:'--yellow'}];
   weeks.forEach((wk,i)=>{
     let yOff=0;
     types.forEach(t=>{
       const h=(wk[t.key]/maxVal)*gH;
-      ctx.fillStyle=t.color+'bb';ctx.beginPath();ctx.roundRect(padL+i*bW+4,padT+gH-yOff-h,bW-10,h,2);ctx.fill();
+      ctx.fillStyle=palA(t.token,.73);ctx.beginPath();ctx.roundRect(padL+i*bW+4,padT+gH-yOff-h,bW-10,h,2);ctx.fill();
       yOff+=h;
     });
     ctx.fillStyle=pal('--text2');ctx.font='9px Sometype Mono';ctx.textAlign='center';ctx.fillText(wk.label,padL+i*bW+bW/2,160-padB+14);
   });
   ctx.font='10px Sometype Mono';ctx.textAlign='left';
-  types.forEach((t,i)=>{ctx.fillStyle=t.color;ctx.fillRect(padL+i*80,padT,10,10);ctx.fillStyle=pal('--text2');ctx.fillText(t.key,padL+i*80+14,padT+9)});
+  types.forEach((t,i)=>{ctx.fillStyle=pal(t.token);ctx.fillRect(padL+i*80,padT,10,10);ctx.fillStyle=pal('--text2');ctx.fillText(t.key,padL+i*80+14,padT+9)});
 }
 
 // ════════════════════════════════════════════════════════
@@ -2213,31 +2267,31 @@ function renderHistory(){
     if(toF&&e.date>toF)return false;
     return true;
   });
-  const wIcons={gym:'🏋️ Gym',cardio:'🚴 Cardio',basketball:'🏀 Basketball',rest:'😴 Rest'};
+  const wIcons={gym:typeIco('gym',13)+' Gym',crossfit:typeIco('crossfit',13)+' CrossFit',cardio:typeIco('cardio',13)+' Cardio',basketball:typeIco('basketball',13)+' Basketball',rest:typeIco('rest',13)+' Rest'};
   document.getElementById('history-list').innerHTML=filtered.length?filtered.map(e=>{
     const badges=[];
     e.workouts?.forEach(w=>{
       badges.push(`<span class="badge workout">${wIcons[w]||w}</span>`);
       if(w==='cardio'&&(e.cardioDuration||e.cardioZone)){
         const parts=[];if(e.cardioDuration)parts.push(e.cardioDuration+'min');if(e.cardioZone)parts.push(e.cardioZone);
-        badges.push(`<span class="badge">🕐 ${parts.join(' · ')}</span>`);
+        badges.push(`<span class="badge">${ico('clock',11)} ${parts.join(' · ')}</span>`);
       }
       if(w==='basketball'&&(e.basketballDuration||e.basketballIntensity)){
         const parts=[];if(e.basketballDuration)parts.push(e.basketballDuration+'min');if(e.basketballIntensity)parts.push(e.basketballIntensity);
-        badges.push(`<span class="badge">🕐 ${parts.join(' · ')}</span>`);
+        badges.push(`<span class="badge">${ico('clock',11)} ${parts.join(' · ')}</span>`);
       }
     });
-    if(e.weight)badges.push(`<span class="badge">⚖️ ${e.weight}kg</span>`);
-    if(e.kfa!=null)badges.push(`<span class="badge">🔵 ${e.kfa}% KFA (Navy)</span>`);
-    else if(e.bf!=null)badges.push(`<span class="badge">🔵 ${e.bf}% KFA (Omron)</span>`);
-    if(e.lbm!=null)badges.push(`<span class="badge">💪 ${e.lbm}kg LBM</span>`);
-    if(e.neck!=null)badges.push(`<span class="badge">📏 Hals ${e.neck}cm</span>`);
-    if(e.waist)badges.push(`<span class="badge">📏 Taille ${e.waist}cm</span>`);
-    if(e.vo2max)badges.push(`<span class="badge">🫁 ${e.vo2max} VO2Max</span>`);
-    if(e.protein)badges.push(`<span class="badge">🥩 ${e.protein}g protein</span>`);
-    if(e.carbs)badges.push(`<span class="badge">🍞 ${e.carbs}g carbs</span>`);
-    if(e.steps)badges.push(`<span class="badge">👣 ${e.steps.toLocaleString()} steps</span>`);
-    if(e.notes)badges.push(`<span class="badge">📝 ${e.notes}</span>`);
+    if(e.weight)badges.push(`<span class="badge">${ico('scale',11)} ${e.weight}kg</span>`);
+    if(e.kfa!=null)badges.push(`<span class="badge">${ico('dot',10)} ${e.kfa}% KFA (Navy)</span>`);
+    else if(e.bf!=null)badges.push(`<span class="badge">${ico('dot',10)} ${e.bf}% KFA (Omron)</span>`);
+    if(e.lbm!=null)badges.push(`<span class="badge">${ico('gym',11)} ${e.lbm}kg LBM</span>`);
+    if(e.neck!=null)badges.push(`<span class="badge">${ico('ruler',11)} Hals ${e.neck}cm</span>`);
+    if(e.waist)badges.push(`<span class="badge">${ico('ruler',11)} Taille ${e.waist}cm</span>`);
+    if(e.vo2max)badges.push(`<span class="badge">${ico('pulse',11)} ${e.vo2max} VO2Max</span>`);
+    if(e.protein)badges.push(`<span class="badge">${ico('cube',11)} ${e.protein}g protein</span>`);
+    if(e.carbs)badges.push(`<span class="badge">${ico('cube',11)} ${e.carbs}g carbs</span>`);
+    if(e.steps)badges.push(`<span class="badge">${ico('steps',11)} ${e.steps.toLocaleString()} steps</span>`);
+    if(e.notes)badges.push(`<span class="badge">${ico('note',11)} ${e.notes}</span>`);
     // Calorie balance section
     const daySessions=sessions.filter(s=>s.date===e.date);
     const workoutCals=daySessions.reduce((sum,s)=>sum+((s.type==='gym'?s.gymCals:s.calories)||0),0);
@@ -2254,14 +2308,14 @@ function renderHistory(){
     const outBreakdown=outParts.length>1?` (${outParts.join(' + ')})`:'';
     const balanceHTML=showBalance?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);align-items:center">
       <span style="color:var(--text2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Calories:</span>
-      ${calsIn?`<span class="badge" style="background:var(--surface2);color:var(--green)">🍽️ IN: ${calsIn} kcal</span>`:''}
-      ${totalOut?`<span class="badge" style="background:var(--surface2);color:var(--yellow)">🔥 OUT: ${totalOut} kcal${outBreakdown}</span>`:''}
+      ${calsIn?`<span class="badge" style="background:var(--surface2);color:var(--green)">${ico('plate',11)} IN: ${calsIn} kcal</span>`:''}
+      ${totalOut?`<span class="badge" style="background:var(--surface2);color:var(--yellow)">${ico('flame',11)} OUT: ${totalOut} kcal${outBreakdown}</span>`:''}
       ${(calsIn&&totalOut)?`<span class="badge" style="background:${calsIn-totalOut>=0?'var(--surface2)':'var(--surface2)'};color:${calsIn-totalOut>=0?'var(--accent)':'var(--red)'}">⚖️ Net: ${calsIn-totalOut>0?'+':''}${calsIn-totalOut} kcal</span>`:''}
     </div>`:'';
     return `<div class="history-item" style="${showBalance?'flex-direction:column;align-items:stretch':''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
         <span class="date">${e.date}</span><div class="details">${badges.join('')}</div>
-        <button class="delete-btn" onclick="deleteEntry(${e.id})">✕</button>
+        <button class="delete-btn" onclick="deleteEntry(${e.id})"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
       </div>${balanceHTML}</div>`;
   }).join(''):`<div class="empty-state">No entries found.</div>`;
 }
@@ -2276,7 +2330,7 @@ function renderSessionHistory(){
     sel.style.minWidth='150px';
     sel.innerHTML=`<label>Filter type</label><select id="sess-filter-type" onchange="renderHistory()">
       <option value="">All types</option>
-      ${types.map(t=>`<option value="${escHtml(t.id)}">${t.icon} ${escHtml(t.label)}</option>`).join('')}
+      ${types.map(t=>`<option value="${escHtml(t.id)}">${escHtml(t.label)}</option>`).join('')}
     </select>`;
     wrap.appendChild(sel);
   }
@@ -2295,7 +2349,7 @@ function renderSessionHistory(){
   document.getElementById('history-list').innerHTML=filtered.length?filtered.map(s=>{
     const type=s.type||'gym';
     const tDef=typeMap[type]||{icon:'🏃',label:type};
-    const icon=tDef.icon;
+    const icon=typeIco({id:type,icon:tDef.icon},14);
     const exHTML=s.exercises.map(ex=>{
       const setsStr=ex.sets.map((st,i)=>`<span class="tag">${i+1}: ${st.reps||'?'}×${st.weight||'?'}kg${st.comment?' – '+st.comment:''}</span>`).join('');
       return `<div style="margin-bottom:8px"><span style="font-weight:600">${ex.name}</span>${ex.comment?` <span style="color:var(--text2);font-size:12px">— ${ex.comment}</span>`:''}<div style="margin-top:4px">${setsStr}</div></div>`;
@@ -2303,19 +2357,19 @@ function renderSessionHistory(){
     const summParts=[];
     if(type==='gym'){
       if(s.gymDuration) summParts.push(`<span class="tag">${s.gymDuration} min</span>`);
-      if(s.gymAvgHR)    summParts.push(`<span class="tag">❤️ ${s.gymAvgHR} bpm</span>`);
-      if(s.gymCals)     summParts.push(`<span class="tag">🔥 ${s.gymCals} kcal</span>`);
+      if(s.gymAvgHR)    summParts.push(`<span class="tag">${ico('heart',11)} ${s.gymAvgHR} bpm</span>`);
+      if(s.gymCals)     summParts.push(`<span class="tag">${ico('flame',11)} ${s.gymCals} kcal</span>`);
     }else if(type!=='rest'){
       if(s.duration)  summParts.push(`<span class="tag">${s.duration} min</span>`);
-      if(s.avgHR)     summParts.push(`<span class="tag">❤️ ${s.avgHR} bpm</span>`);
-      if(s.calories)  summParts.push(`<span class="tag">🔥 ${s.calories} kcal</span>`);
+      if(s.avgHR)     summParts.push(`<span class="tag">${ico('heart',11)} ${s.avgHR} bpm</span>`);
+      if(s.calories)  summParts.push(`<span class="tag">${ico('flame',11)} ${s.calories} kcal</span>`);
       if(s.intensity) summParts.push(`<span class="tag">${s.intensity}</span>`);
     }
     const summHTML=summParts.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:${exHTML?'8px':'0'};${exHTML?'padding-top:8px;border-top:1px solid var(--border)':''}">${summParts.join('')}</div>`:'';
     return `<div class="history-item" style="flex-direction:column;align-items:stretch">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div><span class="date">${s.date}</span><span style="margin-left:8px">${icon}</span>${s.comment?`<span style="color:var(--text2);font-size:13px;margin-left:8px">${s.comment}</span>`:''}</div>
-        <button class="delete-btn" onclick="deleteSession(${s.id})">✕</button>
+        <button class="delete-btn" onclick="deleteSession(${s.id})"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
       </div>
       ${exHTML}${summHTML}
     </div>`;
@@ -2385,7 +2439,7 @@ function onAIProviderChange(){
   const keyEl    = document.getElementById('ai-key-input');
   const modelEl  = document.getElementById('ai-model-info');
   const hasKey   = !!localStorage.getItem(cfg.keyStore);
-  if(keyEl)   keyEl.placeholder = hasKey ? '●●●●●●●● (saved)' : cfg.keyPlaceholder;
+  if(keyEl)   keyEl.placeholder = hasKey ? '•••••••• (saved)' : cfg.keyPlaceholder;
   if(modelEl) modelEl.textContent = 'Model: ' + cfg.model;
 }
 
@@ -2398,7 +2452,7 @@ function saveAIKey(){
     localStorage.setItem(cfg.keyStore, val);
     localStorage.setItem(AI_PROVIDER_STORE, provider);
     document.getElementById('ai-key-input').value = '';
-    document.getElementById('ai-key-input').placeholder = '●●●●●●●● (saved)';
+    document.getElementById('ai-key-input').placeholder = '•••••••• (saved)';
     toast('API key saved!');
   } else {
     localStorage.removeItem(cfg.keyStore);
@@ -2412,7 +2466,7 @@ function toggleSysPrompt(){
   const arrow = document.getElementById('sysprompt-arrow');
   const open  = area.style.display === 'block';
   area.style.display  = open ? 'none' : 'block';
-  arrow.textContent   = open ? '▶ expand' : '▼ collapse';
+  arrow.innerHTML     = open ? ico('arrow-right',10)+' expand' : ico('arrow-right',10).replace('i-arrow-right','i-arrow-right" style="transform:rotate(90deg)')+' collapse';
 }
 
 function saveSysPrompt(){
@@ -2436,7 +2490,7 @@ async function askAICoach(){
   if(!key){ toast('No API key set — add it in Settings', 'var(--orange)'); return }
   const btn      = document.getElementById('ai-coach-btn');
   const respCard = document.getElementById('ai-response-card');
-  if(btn)      { btn.disabled = true; btn.textContent = '⏳ Analyzing…'; }
+  if(btn)      { btn.disabled = true; btn.textContent = 'Analysiere…'; }
   if(respCard)   respCard.innerHTML = '';
   try{
     const data = {
@@ -2459,8 +2513,8 @@ async function askAICoach(){
     if(respCard){
       respCard.innerHTML = `<div class="card" style="border-color:var(--accent)33;margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <h3 style="color:var(--accent);margin:0;font-size:14px">🤖 AI COACH <span style="color:var(--text2);font-weight:400;font-size:11px">(${cfg.model})</span></h3>
-          <button class="btn-ghost" onclick="document.getElementById('ai-response-card').innerHTML=''" title="Dismiss">✕</button>
+          <h3 style="color:var(--accent);margin:0;font-size:14px"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-chip"></use></svg> AI COACH <span style="color:var(--text2);font-weight:400;font-size:11px">(${cfg.model})</span></h3>
+          <button class="btn-ghost" onclick="document.getElementById('ai-response-card').innerHTML=''" title="Dismiss"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
         </div>
         <div style="white-space:pre-wrap;font-size:14px;line-height:1.65;color:var(--text)">${escHtml(text)}</div>
       </div>`;
@@ -2471,14 +2525,14 @@ async function askAICoach(){
     if(respCard){
       respCard.innerHTML = `<div class="card" style="border-color:var(--red);margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <h3 style="color:var(--red);margin:0;font-size:14px">⚠️ AI Coach Error</h3>
-          <button class="btn-ghost" onclick="document.getElementById('ai-response-card').innerHTML=''" title="Dismiss">✕</button>
+          <h3 style="color:var(--red);margin:0;font-size:14px"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-warning"></use></svg> AI Coach Error</h3>
+          <button class="btn-ghost" onclick="document.getElementById('ai-response-card').innerHTML=''" title="Dismiss"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>
         </div>
         <div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${escHtml(msg)}</div>
       </div>`;
     }
   } finally{
-    if(btn){ btn.disabled = false; btn.textContent = '🤖 Ask AI Coach'; }
+    if(btn){ btn.disabled = false; btn.textContent = 'AI Coach fragen'; }
   }
 }
 
@@ -2497,10 +2551,10 @@ function renderWorkoutTypesSettings(){
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px';
     row.innerHTML=`
-      <input type="text" value="${escHtml(t.icon)}" maxlength="4" style="width:44px;text-align:center;font-size:18px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px;outline:none" data-idx="${i}" data-field="icon">
+      ${BUILTIN_TYPES.includes(t.id)?`<span style="width:44px;display:flex;align-items:center;justify-content:center;color:var(--text2)" title="Gezeichnetes Icon">${typeIco(t,18)}</span>`:`<input type="text" value="${escHtml(t.icon)}" maxlength="4" style="width:44px;text-align:center;font-size:18px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px;outline:none" data-idx="${i}" data-field="icon">`}
       <input type="text" value="${escHtml(t.label)}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;padding:5px 9px;outline:none" data-idx="${i}" data-field="label">
       <button class="btn btn-sm" data-save="${i}" style="background:var(--surface);border:1px solid var(--border);color:var(--text)">Save</button>
-      ${BUILTIN_TYPES.includes(t.id)?`<span style="color:var(--text2);font-size:18px;padding:0 4px" title="Built-in type">🔒</span>`:`<button class="btn btn-sm btn-danger" data-del="${i}">✕</button>`}
+      ${BUILTIN_TYPES.includes(t.id)?`<span style="color:var(--text2);font-size:18px;padding:0 4px" title="Built-in type"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-lock"></use></svg></span>`:`<button class="btn btn-sm btn-danger" data-del="${i}"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button>`}
     `;
     container.appendChild(row);
   });
@@ -2682,39 +2736,7 @@ function calcBioAge(){
 
 function addDays(str,n){const d=new Date(str);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
 
-function calcWeekScore(wsStr){
-  const weStr=addDays(wsStr,6);
-  const sessions=getSessions(),entries=getEntries(),goals=getGoals();
-  const wS=sessions.filter(s=>s.date>=wsStr&&s.date<=weStr);
-  const gymN=Math.min(wS.filter(s=>!s.type||s.type==='gym'||s.type==='crossfit').length,3);
-  const cardioN=Math.min(wS.filter(s=>s.type==='cardio').length,2);
-  const bbN=Math.min(wS.filter(s=>s.type==='basketball').length,1);
-  const pG=getProteinGoal();
-  const wE=entries.filter(e=>e.date>=wsStr&&e.date<=weStr);
-  const protDays=Math.min(wE.filter(e=>(e.protein||0)>=pG*0.85).length,7);
-  const stepDays=Math.min(wE.filter(e=>(e.steps||0)>=8000).length,7);
-  return Math.round(gymN/3*25+cardioN/2*20+bbN*15+protDays/7*25+stepDays/7*15);
-}
 
-function calcWeeklyComparison(){
-  const now=new Date();
-  const mondayOff=(now.getDay()+6)%7;
-  const weeks=[];
-  for(let i=0;i<8;i++){
-    const ws=new Date(now);ws.setDate(now.getDate()-mondayOff-i*7);
-    weeks.push(ws.toISOString().slice(0,10));
-  }
-  const scores=weeks.map(w=>calcWeekScore(w));
-  const cur=scores[0],last=scores[1];
-  const past7=scores.slice(1);
-  const personalBest=Math.max(...past7,1);
-  const avg4=Math.round(scores.slice(1,5).reduce((s,v)=>s+v,0)/4);
-  let trend='→';
-  if(cur>last+5)trend='↑';
-  else if(cur<last-5)trend='↓';
-  const trendColor=trend==='↑'?'var(--green)':trend==='↓'?'var(--red)':'var(--yellow)';
-  return{cur,last,personalBest,avg4,trend,trendColor,scores:scores.slice(0,8),weeks};
-}
 
 function renderLongevityScore(){
   const card=document.getElementById('longevity-score-card');if(!card)return;
@@ -2749,7 +2771,7 @@ function renderLongevityScore(){
               </div>
             </div>`;
           }).join('')}
-          <div style="font-size:10px;color:var(--text2);margin-top:2px">◀ älter &nbsp;|&nbsp; Ø Referenz &nbsp;|&nbsp; jünger ▶</div>
+          <div style="font-size:10px;color:var(--text2);margin-top:2px">‹ älter &nbsp;|&nbsp; Ø Referenz &nbsp;|&nbsp; jünger ›</div>
           ${ba.startedWeeks<4?`<div style="font-size:10px;color:var(--text2);margin-top:1px">(${ba.startedWeeks} Wochen Daten für Konsistenz)</div>`:''}
         </div>
       </div>
@@ -2836,38 +2858,10 @@ function renderAktivitaetCard(){
   }
   card.innerHTML=`
     <h3>Wöchentliche Aktivität</h3>
-    ${row('⏱','Aktive Minuten',thisWeek.mins,'min',lastWeek.mins,monthlyAvg?.mins)}
-    ${row('🔥','Kalorien',thisWeek.cals,'kcal',lastWeek.cals,monthlyAvg?.cals)}`;
+    ${row(ico('timer',12),'Aktive Minuten',thisWeek.mins,'min',lastWeek.mins,monthlyAvg?.mins)}
+    ${row(ico('flame',12),'Kalorien',thisWeek.cals,'kcal',lastWeek.cals,monthlyAvg?.cals)}`;
 }
 
-function renderWeeklyScore(){
-  const card=document.getElementById('weekly-score-card');if(!card)return;
-  const{cur,last,personalBest,avg4,trend,trendColor,scores,weeks}=calcWeeklyComparison();
-  const pctOfBest=personalBest>0?Math.round(cur/personalBest*100):100;
-  const vsAvg=cur-avg4;
-  const barCol=pctOfBest>=80?'var(--green)':pctOfBest>=50?'var(--yellow)':'var(--red)';
-  // Sparkline last 8 weeks (oldest left, current right)
-  const sparkMax=Math.max(...scores,1);
-  const sparkBars=['▁','▂','▃','▄','▅','▆','▇','█'];
-  const spark=[...scores].reverse().map(s=>{
-    const idx=Math.round((s/sparkMax)*7);
-    return`<span style="color:${s===cur?barCol:'var(--text2)'}">${sparkBars[idx]||'▁'}</span>`;
-  }).join('');
-  card.innerHTML=`
-    <h3>Woche im Vergleich</h3>
-    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">
-      <span style="font-size:44px;font-weight:700;color:${barCol};line-height:1">${cur}</span>
-      <span style="font-size:20px;color:${trendColor};font-weight:700">${trend}</span>
-      <span style="color:var(--text2);font-size:12px">${vsAvg>=0?'+':''}${vsAvg} vs. Ø</span>
-    </div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:5px">${pctOfBest}% des persönlichen Bests (${personalBest} Pkt.)</div>
-    <div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-bottom:12px;position:relative">
-      <div style="height:100%;width:${pctOfBest}%;background:${barCol};border-radius:4px"></div>
-      ${avg4>0?`<div style="position:absolute;left:${Math.round(avg4/personalBest*100)}%;top:-2px;width:2px;height:11px;background:var(--text2);border-radius:1px" title="4-Wochen-Schnitt"></div>`:''}
-    </div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">4-Wochen-Schnitt: <strong style="color:var(--text)">${avg4}</strong> &nbsp;·&nbsp; Letzte Woche: <strong style="color:var(--text)">${last}</strong></div>
-    <div style="font-size:18px;letter-spacing:2px;margin-top:4px">${spark}</div>`;
-}
 
 function getPRs(){return get(PR_KEY,{});}
 
@@ -3044,7 +3038,7 @@ function renderPRHistory(){
   container.innerHTML='<div style="display:flex;flex-direction:column;gap:10px">'+keys.map(name=>{
     const pr=prs[name];
     return`<div class="history-item" style="align-items:center;gap:14px">
-      <span style="font-size:22px">🏆</span>
+      <span style="color:var(--yellow);display:flex"><svg class="icon" style="width:20px;height:20px" aria-hidden="true"><use href="#i-trophy"></use></svg></span>
       <div style="flex:1">
         <div style="font-weight:600;font-size:15px">${escHtml(name)}</div>
         <div style="color:var(--text2);font-size:12px;margin-top:2px">${pr.date} — ${pr.weight}kg × ${pr.reps} Wdh = <strong style="color:var(--yellow)">${pr.volume} Vol.</strong></div>
@@ -3299,7 +3293,7 @@ function exportExcel(){
   XLSX.writeFile(wb,`trackfit_${today()}.xlsx`);
   localStorage.setItem(LAST_EXPORT_KEY,String(Date.now()));
   checkExportReminder();
-  toast('✅ Excel exportiert!');
+  toast('Excel exportiert');
 }
 
 function importData(ev){
