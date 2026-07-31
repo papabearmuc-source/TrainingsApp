@@ -1,4 +1,4 @@
-const CACHE = 'trackfit-v33';
+const CACHE = 'trackfit-v37';
 
 const ASSETS = [
   './',
@@ -6,7 +6,10 @@ const ASSETS = [
   './manifest.json',
   './icons/icon-192.svg',
   './icons/icon-512.svg',
-  './icons/icon-maskable.svg'
+  './icons/icon-maskable.svg',
+  // Selbst gehostete Schriften — nach dem ersten Laden kein externer Request mehr
+  './fonts/archivo-latin-var.woff2',
+  './fonts/sometype-mono-latin-var.woff2'
 ];
 
 // Install: cache all assets
