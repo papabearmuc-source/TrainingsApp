@@ -16,129 +16,339 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  :root {
-    --bg:#0f0f13;--surface:#1a1a24;--surface2:#24243a;--border:#2e2e45;
-    --accent:#6c63ff;--green:#43e97b;--yellow:#f9ca24;--orange:#f0932b;
-    --text:#e8e8f0;--text2:#9090b0;--red:#ff4757;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;min-height:100vh}
-  nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;padding:8px 16px;position:sticky;top:0;z-index:100}
-  nav button{background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;padding:6px 12px;border-radius:6px;transition:all .15s}
-  nav button.active,nav button:hover{background:var(--surface2);color:var(--text)}
-  nav button.active{color:var(--accent)}
-  .nav-title{color:var(--accent);font-weight:700;font-size:16px;display:flex;align-items:center;margin-right:10px}
-  .page{display:none;padding:24px 20px;max-width:960px;margin:0 auto}
-  .page.active{display:block}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-  .card h3{color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
-  .goals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px}
-  .goal-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
-  .goal-card .label{color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-  .goal-card .value{font-size:26px;font-weight:700;margin-bottom:2px}
-  .goal-card .target{color:var(--text2);font-size:12px;margin-bottom:10px}
-  .progress-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
-  .progress-fill{height:100%;border-radius:3px;transition:width .4s}
-  .goal-card .delta{font-size:12px;margin-top:6px}
-  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-  .field{display:flex;flex-direction:column;gap:5px}
-  .field label{color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.7px}
-  .field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:8px 11px;outline:none;transition:border-color .15s;width:100%;font-family:inherit}
-  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
-  .field textarea{resize:vertical;min-height:60px}
-  .field input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.6)}
-  .field select option{background:var(--surface2)}
-  .section-title{color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
-  .btn{background:var(--accent);border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px;font-weight:600;padding:9px 20px;transition:opacity .15s}
-  .btn:hover{opacity:.85}
-  .btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
-  .btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
-  .btn-danger{background:var(--red)}
-  .btn-ghost{background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:5px;transition:all .15s}
-  .btn-ghost:hover{background:var(--surface2);color:var(--text)}
-  .btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text2);cursor:pointer;font-size:13px;padding:5px 14px;transition:all .15s;user-select:none}
-  .chip.selected{background:var(--accent);border-color:var(--accent);color:#fff}
-  .chart-tabs,.chart-tab{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-  .chart-tab{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:13px;padding:5px 12px;transition:all .15s;margin-bottom:0}
-  .chart-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
-  .history-list{display:flex;flex-direction:column;gap:10px}
-  .history-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-  .history-item .date{color:var(--accent);font-weight:600;font-size:14px;min-width:90px}
-  .history-item .details{flex:1;display:flex;flex-wrap:wrap;gap:8px}
-  .badge{background:var(--surface2);border-radius:5px;color:var(--text2);font-size:12px;padding:3px 8px}
-  .badge.workout{background:#2a2a6e;color:#a0a0ff}
-  .delete-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;padding:0 4px;opacity:.5;transition:opacity .15s}
-  .delete-btn:hover{opacity:1;color:var(--red)}
-  .toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#111;border-radius:8px;padding:10px 18px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9999}
-  .toast.show{opacity:1}
-  .summary-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
-  .stat-pill{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;display:flex;flex-direction:column;gap:2px}
-  .stat-pill .sp-label{color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.7px}
-  .stat-pill .sp-val{font-size:20px;font-weight:700}
+  /* ═══════════════════════════════════════════════════════════════════════
+     TrackFit — "Wettkampftag"
+     Ein System, zwei Register. Die Wiegekarte (hell, leise) trägt Körper,
+     Charts, Dashboard und Einstellungen. Die Plattform (Lack, laut) trägt
+     Training, Pläne und Rekorde. Schrift, Ziffern, Regeln und das eine Rot
+     sind in beiden identisch — nur der Ton wechselt mit dem Anlass.
+     ═══════════════════════════════════════════════════════════════════════ */
 
-  /* ── Workout session logger ── */
-  .session-exercise{background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
-  .session-ex-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
-  .session-ex-name{font-weight:600;font-size:15px}
-  .session-ex-group{color:var(--text2);font-size:12px;margin-left:8px}
+  @font-face{
+    font-family:'Archivo';
+    src:url('fonts/archivo-latin-var.woff2') format('woff2-variations');
+    font-weight:100 900; font-stretch:62% 125%; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Sometype Mono';
+    src:url('fonts/sometype-mono-latin-var.woff2') format('woff2-variations');
+    font-weight:400 700; font-style:normal; font-display:swap;
+  }
+
+  :root{
+    --fd:'Archivo', ui-sans-serif, system-ui, sans-serif;   /* Display + UI */
+    --fm:'Sometype Mono', ui-monospace, Consolas, monospace; /* Messwerte */
+
+    /* Das eine Rot — identisch in beiden Registern */
+    --meet:#C8102E;
+  }
+
+  /* Die Register-Token sitzen auf <body>, nicht auf :root — sonst würden die
+     Alt-Token-Aliase weiter unten gegen die :root-Werte auflösen und beim
+     Registerwechsel auf der hellen Palette hängen bleiben. */
+  body{
+    /* Default = Wiegekarte (Dashboard ist die Startseite) */
+    --ground:#EFEDE6; --surf:#E6E3D8; --surf-2:#DEDBCF;
+    --line:#14140F;   --hair:#D3CFC2;
+    --fg:#14140F;     --fg-2:#59574D;
+    --on-meet:#FFFFFF;
+    --ok:#2E5C2A; --warn:#7A5500; --bad:#C8102E;
+  }
+
+  /* ── Register: Plattform ────────────────────────────────────────────── */
+  body[data-register="plattform"]{
+    --ground:#14140F; --surf:#1D1C16; --surf-2:#26251D;
+    --line:#3A382E;   --hair:#2E2D26;
+    --fg:#EFEDE6;     --fg-2:#A5A295;
+    --on-meet:#FFFFFF;
+    --ok:#9DCB6B; --warn:#E0A32E; --bad:#FF7285;
+  }
+
+  /* Alt-Token als Aliase — hält sämtliche Inline-Styles im JS am Leben.
+     Muss auf <body> stehen und NACH beiden Register-Blöcken kommen, damit
+     var() gegen die bereits aufgelösten Register-Werte desselben Elements greift. */
+  body{
+    --bg:var(--ground); --surface:var(--surf); --surface2:var(--surf-2);
+    --border:var(--hair); --text:var(--fg); --text2:var(--fg-2);
+    --accent:var(--meet);
+    --green:var(--ok); --yellow:var(--warn); --orange:var(--warn); --red:var(--bad);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  body{
+    background:var(--ground); color:var(--fg);
+    font-family:var(--fd); font-size:15px; min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    transition:background-color .26s cubic-bezier(.2,.7,.3,1), color .26s cubic-bezier(.2,.7,.3,1);
+  }
+  @media (prefers-reduced-motion:reduce){ body{transition:none} }
+
+  /* Ziffern: überall dieselbe Behandlung, nur die Größe wechselt */
+  .num,.goal-card .value,.stat-pill .sp-val,.sets-table input,
+  .plan-ex-targets input,.field input{font-variant-numeric:tabular-nums}
+
+  /* ── Navigation ─────────────────────────────────────────────────────── */
+  nav{
+    background:var(--ground); border-bottom:2px solid var(--line);
+    display:flex; flex-wrap:wrap; gap:2px; padding:9px 16px;
+    position:sticky; top:0; z-index:100;
+    transition:background-color .26s cubic-bezier(.2,.7,.3,1), border-color .26s cubic-bezier(.2,.7,.3,1);
+  }
+  nav button{
+    background:none; border:none; color:var(--fg-2); cursor:pointer;
+    font-family:var(--fd); font-size:12px; font-weight:600;
+    letter-spacing:.09em; text-transform:uppercase;
+    padding:6px 11px; border-radius:0; transition:color .14s, box-shadow .14s;
+  }
+  nav button:hover{color:var(--fg)}
+  nav button.active{color:var(--fg); box-shadow:inset 0 -2px 0 var(--meet)}
+  nav button:focus-visible{outline:2px solid var(--meet); outline-offset:1px}
+  .nav-title{
+    color:var(--fg); font-weight:850; font-size:15px; font-stretch:88%;
+    letter-spacing:-.02em; text-transform:uppercase;
+    display:flex; align-items:center; gap:7px; margin-right:14px;
+  }
+  .nav-title svg{width:17px;height:17px;flex:none}
+
+  .page{display:none; padding:26px 20px 60px; max-width:960px; margin:0 auto}
+  .page.active{display:block}
+
+  /* ── Flächen: Regeln statt Kacheln ──────────────────────────────────── */
+  .card{
+    background:var(--surf); border:1px solid var(--hair); border-radius:12px;
+    padding:20px; margin-bottom:16px;
+  }
+  .card h3{
+    font-family:var(--fm); color:var(--fg-2); font-size:10.5px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.15em; margin-bottom:14px;
+  }
+
+  .goals-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:16px}
+  .goal-card{background:var(--surf); border:1px solid var(--hair); border-radius:12px; padding:18px}
+  .goal-card .label{
+    font-family:var(--fm); color:var(--fg-2); font-size:10px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.14em; margin-bottom:7px;
+  }
+  .goal-card .value{font-size:29px; font-weight:850; font-stretch:80%; letter-spacing:-.04em; line-height:1; margin-bottom:5px}
+  .goal-card .target{font-family:var(--fm); color:var(--fg-2); font-size:10.5px; margin-bottom:10px; letter-spacing:.02em}
+  .goal-card .delta{font-family:var(--fm); font-size:10.5px; margin-top:7px; letter-spacing:.02em}
+  .progress-bar{height:6px; background:var(--surf-2); border-radius:0; overflow:hidden}
+  .progress-fill{height:100%; border-radius:0; transition:width .4s}
+
+  /* ── Formulare ──────────────────────────────────────────────────────── */
+  .form-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px}
+  .field{display:flex; flex-direction:column; gap:5px}
+  .field label{
+    font-family:var(--fm); color:var(--fg-2); font-size:10px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.14em;
+  }
+  .field input,.field select,.field textarea{
+    background:var(--ground); border:1px solid var(--hair); border-radius:7px;
+    color:var(--fg); font-family:var(--fd); font-size:14px; padding:8px 11px;
+    outline:none; transition:border-color .14s, box-shadow .14s; width:100%;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{
+    border-color:var(--meet); box-shadow:0 0 0 2px color-mix(in srgb, var(--meet) 26%, transparent);
+  }
+  .field textarea{resize:vertical; min-height:60px}
+  .field input[type=date]::-webkit-calendar-picker-indicator{filter:var(--pick,none)}
+  body[data-register="plattform"] .field input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.75)}
+  .field select option{background:var(--surf); color:var(--fg)}
+
+  .section-title{
+    font-family:var(--fm); color:var(--fg-2); font-size:10.5px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.15em;
+    margin:20px 0 10px; border-bottom:1px solid var(--hair); padding-bottom:6px;
+  }
+
+  /* ── Schaltflächen ──────────────────────────────────────────────────── */
+  .btn{
+    background:var(--meet); border:1px solid var(--meet); border-radius:7px;
+    color:var(--on-meet); cursor:pointer; font-family:var(--fd);
+    font-size:12px; font-weight:750; letter-spacing:.1em; text-transform:uppercase;
+    padding:10px 20px; transition:filter .14s;
+  }
+  .btn:hover{filter:brightness(1.09)}
+  .btn:focus-visible{outline:2px solid var(--fg); outline-offset:2px}
+  .btn-sm{padding:6px 12px; font-size:11px; letter-spacing:.08em}
+  .btn-secondary{background:transparent; border-color:var(--line); color:var(--fg)}
+  .btn-secondary:hover{background:var(--surf-2); filter:none}
+  .btn-danger{background:var(--meet); border-color:var(--meet); color:var(--on-meet)}
+  .btn-ghost{
+    background:none; border:none; color:var(--fg-2); cursor:pointer;
+    font-family:var(--fd); font-size:13px; padding:4px 8px; border-radius:5px;
+    transition:color .14s, background-color .14s;
+  }
+  .btn-ghost:hover{background:var(--surf-2); color:var(--fg)}
+  .btn-ghost:focus-visible{outline:2px solid var(--meet); outline-offset:1px}
+  .btn-row{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; align-items:center}
+
+  /* ── Chips / Tabs ───────────────────────────────────────────────────── */
+  .chips{display:flex; flex-wrap:wrap; gap:7px}
+  .chip{
+    background:transparent; border:1px solid var(--hair); border-radius:6px;
+    color:var(--fg-2); cursor:pointer; font-family:var(--fd); font-size:12px;
+    font-weight:600; letter-spacing:.05em; padding:6px 13px;
+    transition:all .14s; user-select:none; display:inline-flex; align-items:center; gap:6px;
+  }
+  .chip:hover{border-color:var(--line); color:var(--fg)}
+  .chip.selected{background:var(--meet); border-color:var(--meet); color:var(--on-meet)}
+  .chip svg{width:14px;height:14px;flex:none}
+  .chart-tabs{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px}
+  .chart-tab{
+    background:transparent; border:1px solid var(--hair); border-radius:6px;
+    color:var(--fg-2); cursor:pointer; font-family:var(--fd); font-size:12px;
+    font-weight:600; padding:6px 13px; transition:all .14s; margin-bottom:0;
+  }
+  .chart-tab.active{background:var(--meet); border-color:var(--meet); color:var(--on-meet)}
+
+  /* ── Listen ─────────────────────────────────────────────────────────── */
+  .history-list{display:flex; flex-direction:column; gap:0}
+  .history-item{
+    background:transparent; border:none; border-bottom:1px solid var(--hair);
+    border-radius:0; padding:13px 2px; display:flex;
+    justify-content:space-between; align-items:flex-start; gap:12px;
+  }
+  .history-item:last-child{border-bottom:none}
+  .history-item .date{font-family:var(--fm); color:var(--fg-2); font-weight:500; font-size:11.5px; min-width:82px; letter-spacing:.03em}
+  .history-item .details{flex:1; display:flex; flex-wrap:wrap; gap:7px}
+  .badge{
+    background:var(--surf-2); border-radius:4px; color:var(--fg-2);
+    font-family:var(--fm); font-size:10.5px; padding:3px 8px; letter-spacing:.03em;
+  }
+  .badge.workout{background:color-mix(in srgb, var(--meet) 15%, transparent); color:var(--meet)}
+  body[data-register="plattform"] .badge.workout{color:#FF8FA0}
+  .delete-btn{
+    background:none; border:none; color:var(--fg-2); cursor:pointer;
+    font-size:16px; padding:0 4px; opacity:.55; transition:opacity .14s, color .14s;
+  }
+  .delete-btn:hover{opacity:1; color:var(--meet)}
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; background:var(--fg); color:var(--ground);
+    border-radius:7px; padding:11px 18px; font-family:var(--fd);
+    font-weight:700; font-size:13px; letter-spacing:.03em;
+    opacity:0; pointer-events:none; transition:opacity .3s; z-index:9999;
+  }
+  .toast.show{opacity:1}
+
+  .summary-row{display:flex; flex-wrap:wrap; gap:0; margin-bottom:18px;
+               border-top:2px solid var(--line); border-bottom:1px solid var(--hair)}
+  .stat-pill{
+    background:transparent; border:none; border-right:1px solid var(--hair);
+    border-radius:0; padding:11px 16px 12px; display:flex; flex-direction:column; gap:3px;
+    flex:1 1 auto; min-width:118px;
+  }
+  .stat-pill:last-child{border-right:none}
+  .stat-pill .sp-label{font-family:var(--fm); color:var(--fg-2); font-size:9.5px;
+                       text-transform:uppercase; letter-spacing:.14em}
+  .stat-pill .sp-val{font-size:21px; font-weight:850; font-stretch:80%; letter-spacing:-.04em; line-height:1.05}
+
+  /* ── Session-Logger (Plattform-Register) ────────────────────────────── */
+  .session-exercise{background:var(--surf); border:1px solid var(--hair); border-radius:10px; margin-bottom:12px; overflow:hidden}
+  .session-ex-header{display:flex; justify-content:space-between; align-items:center;
+                     padding:12px 14px; background:var(--surf-2); border-bottom:1px solid var(--hair); gap:12px}
+  .session-ex-name{font-weight:800; font-size:16px; font-stretch:90%; letter-spacing:-.02em}
+  .session-ex-group{font-family:var(--fm); color:var(--fg-2); font-size:10px;
+                    margin-left:8px; text-transform:uppercase; letter-spacing:.12em}
   .session-ex-body{padding:12px 14px}
   .ex-comment-row{margin-bottom:10px}
-  .sets-table{width:100%;border-collapse:collapse}
-  .sets-table th{color:var(--text2);font-size:11px;text-transform:uppercase;padding:4px 6px;text-align:left;letter-spacing:.6px}
-  .sets-table td{padding:4px 4px}
-  .sets-table input{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;padding:5px 8px;width:100%;outline:none}
-  .sets-table input:focus{border-color:var(--accent)}
-  .sets-table .set-num{color:var(--text2);font-size:13px;padding:4px 8px;min-width:28px}
-  .sets-table .col-reps{width:70px}
-  .sets-table .col-weight{width:80px}
+  .sets-table{width:100%; border-collapse:collapse}
+  .sets-table th{
+    font-family:var(--fm); color:var(--fg-2); font-size:9.5px; font-weight:500;
+    text-transform:uppercase; padding:5px 6px; text-align:left; letter-spacing:.13em;
+  }
+  .sets-table td{padding:4px}
+  .sets-table input{
+    background:var(--ground); border:1px solid var(--hair); border-radius:6px;
+    color:var(--fg); font-family:var(--fd); font-size:15px; font-weight:700;
+    padding:6px 8px; width:100%; outline:none; transition:border-color .14s;
+  }
+  .sets-table input:focus{border-color:var(--meet)}
+  .sets-table .col-comment input{font-weight:400; font-size:13px}
+  .sets-table .set-num{font-family:var(--fm); color:var(--fg-2); font-size:11px; padding:4px 8px; min-width:26px}
+  .sets-table .col-reps{width:74px}
+  .sets-table .col-weight{width:84px}
   .sets-table .col-comment{min-width:140px}
   .sets-table .col-del{width:30px}
 
-  /* ── Exercise library ── */
-  .lib-group{margin-bottom:18px}
-  .lib-group-title{color:var(--accent);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
-  .lib-exercise{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;margin-bottom:6px}
-  .lib-ex-name{font-size:14px;font-weight:500}
-  .lib-ex-notes{color:var(--text2);font-size:12px;margin-top:2px}
-  .lib-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+  /* ── Übungsbibliothek ───────────────────────────────────────────────── */
+  .lib-group{margin-bottom:20px}
+  .lib-group-title{
+    font-family:var(--fm); color:var(--fg-2); font-size:10.5px; font-weight:500;
+    text-transform:uppercase; letter-spacing:.15em; margin-bottom:8px;
+    padding-bottom:6px; border-bottom:2px solid var(--line);
+  }
+  .lib-exercise{
+    display:flex; align-items:center; justify-content:space-between;
+    background:transparent; border:none; border-bottom:1px solid var(--hair);
+    border-radius:0; padding:11px 2px; margin-bottom:0;
+  }
+  .lib-exercise:last-child{border-bottom:none}
+  .lib-ex-name{font-size:14.5px; font-weight:600}
+  .lib-ex-notes{color:var(--fg-2); font-size:12px; margin-top:2px}
+  .lib-actions{display:flex; gap:6px; align-items:center; flex-shrink:0}
 
-  /* ── Plan builder ── */
-  .plan-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden}
-  .plan-card-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;user-select:none}
-  .plan-card-header:hover{background:var(--surface2)}
-  .plan-name{font-weight:700;font-size:16px}
-  .plan-badge{background:var(--green);color:#111;border-radius:4px;font-size:11px;font-weight:700;padding:2px 8px;margin-left:10px}
-  .plan-body{padding:14px 18px;border-top:1px solid var(--border);display:none}
+  /* ── Planbau ────────────────────────────────────────────────────────── */
+  .plan-card{background:var(--surf); border:1px solid var(--hair); border-radius:12px; margin-bottom:14px; overflow:hidden}
+  .plan-card-header{display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer; user-select:none; gap:12px}
+  .plan-card-header:hover{background:var(--surf-2)}
+  .plan-name{font-weight:850; font-size:17px; font-stretch:88%; letter-spacing:-.025em}
+  .plan-badge{
+    background:var(--meet); color:var(--on-meet); border-radius:4px;
+    font-family:var(--fm); font-size:9.5px; font-weight:700; padding:3px 8px;
+    margin-left:10px; letter-spacing:.12em; text-transform:uppercase;
+  }
+  .plan-body{padding:14px 18px; border-top:1px solid var(--hair); display:none}
   .plan-body.open{display:block}
-  .plan-day{background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:10px}
-  .plan-day-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer}
-  .plan-day-header:hover{background:#ffffff08}
-  .plan-day-body{padding:10px 14px;border-top:1px solid var(--border);display:none}
+  .plan-day{background:var(--surf-2); border:1px solid var(--hair); border-radius:8px; margin-bottom:10px}
+  .plan-day-header{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; cursor:pointer; gap:10px}
+  .plan-day-header:hover{background:color-mix(in srgb, var(--fg) 6%, transparent)}
+  .plan-day-body{padding:10px 14px; border-top:1px solid var(--hair); display:none}
   .plan-day-body.open{display:block}
-  .plan-ex-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .plan-ex-row{display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--hair); flex-wrap:wrap}
   .plan-ex-row:last-child{border-bottom:none}
-  .plan-ex-name{flex:1;font-size:14px;min-width:120px}
-  .plan-ex-targets{display:flex;gap:8px;align-items:center}
-  .plan-ex-targets input{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:4px 7px;outline:none;width:60px}
-  .plan-ex-targets input:focus{border-color:var(--accent)}
-  .plan-ex-targets .lbl{color:var(--text2);font-size:12px}
-  .plan-ex-targets select{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;padding:4px 5px;outline:none;width:auto;cursor:pointer}
-  .plan-ex-targets select:focus{border-color:var(--accent)}
-  .plan-ex-bw{color:var(--text2);font-size:12px;font-style:italic;width:65px;text-align:center}
+  .plan-ex-name{flex:1; font-size:14px; font-weight:600; min-width:120px}
+  .plan-ex-targets{display:flex; gap:8px; align-items:center}
+  .plan-ex-targets input{
+    background:var(--ground); border:1px solid var(--hair); border-radius:6px;
+    color:var(--fg); font-family:var(--fd); font-size:13px; font-weight:700;
+    padding:5px 7px; outline:none; width:60px;
+  }
+  .plan-ex-targets input:focus{border-color:var(--meet)}
+  .plan-ex-targets .lbl{font-family:var(--fm); color:var(--fg-2); font-size:10px; text-transform:uppercase; letter-spacing:.1em}
+  .plan-ex-targets select{
+    background:var(--ground); border:1px solid var(--hair); border-radius:6px;
+    color:var(--fg-2); font-family:var(--fm); font-size:11px; padding:5px;
+    outline:none; width:auto; cursor:pointer;
+  }
+  .plan-ex-targets select:focus{border-color:var(--meet)}
+  .plan-ex-bw{font-family:var(--fm); color:var(--fg-2); font-size:10.5px; width:65px; text-align:center; letter-spacing:.02em}
 
-  /* ── Modal ── */
-  .modal-overlay{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:1000;display:none}
+  /* ── Dialog ─────────────────────────────────────────────────────────── */
+  .modal-overlay{position:fixed; inset:0; background:color-mix(in srgb, #14140F 72%, transparent);
+                 align-items:center; justify-content:center; z-index:1000; display:none}
   .modal-overlay.open{display:flex}
-  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:min(480px,95vw);max-height:90vh;overflow-y:auto}
-  .modal h2{font-size:17px;margin-bottom:18px}
-  .modal-footer{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+  .modal{background:var(--ground); border:2px solid var(--line); border-radius:12px;
+         padding:24px; width:min(480px,95vw); max-height:90vh; overflow-y:auto}
+  .modal h2{font-size:19px; font-weight:850; font-stretch:88%; letter-spacing:-.025em; margin-bottom:16px}
+  .modal-footer{display:flex; gap:10px; margin-top:20px; justify-content:flex-end}
 
-  /* ── Misc ── */
-  .empty-state{text-align:center;color:var(--text2);padding:40px 20px;font-size:14px}
-  .tag{display:inline-block;background:var(--surface2);border-radius:4px;color:var(--text2);font-size:11px;padding:2px 7px;margin:1px}
-  @media(max-width:600px){.goals-grid{grid-template-columns:1fr 1fr}.page{padding:14px 10px}.sets-table .col-comment{display:none}}
+  /* ── Sonstiges ──────────────────────────────────────────────────────── */
+  .empty-state{text-align:center; color:var(--fg-2); padding:40px 20px; font-size:14px}
+  .tag{display:inline-block; background:var(--surf-2); border-radius:4px; color:var(--fg-2);
+       font-family:var(--fm); font-size:10px; padding:2px 7px; margin:1px; letter-spacing:.03em}
+
+  .icon{width:1em; height:1em; flex:none; vertical-align:-.125em}
+
+  @media(max-width:600px){
+    .goals-grid{grid-template-columns:1fr 1fr}
+    .page{padding:16px 12px 48px}
+    .sets-table .col-comment{display:none}
+    nav{padding:8px 12px}
+    .stat-pill{min-width:104px; padding:10px 12px}
+  }
 </style>
 </head>
 <body>
@@ -157,10 +367,10 @@
 
 <!-- ══════════════ DASHBOARD ══════════════ -->
 <div id="page-dashboard" class="page active">
-  <div id="export-reminder-banner" style="display:none;background:#f9ca2415;border:1px solid #f9ca2466;border-radius:10px;padding:12px 16px;margin-bottom:16px;align-items:center;gap:12px;flex-wrap:wrap">
+  <div id="export-reminder-banner" style="display:none;background:color-mix(in srgb, var(--yellow) 10%, transparent);border:1px solid color-mix(in srgb, var(--yellow) 45%, transparent);border-radius:10px;padding:12px 16px;margin-bottom:16px;align-items:center;gap:12px;flex-wrap:wrap">
     <span style="font-size:20px">⚠️</span>
-    <span style="flex:1;font-size:14px;color:#f9ca24;min-width:180px">Letzter Backup vor mehr als 14 Tagen — sichere deine Daten!</span>
-    <button class="btn btn-sm" onclick="exportExcel()" style="background:#f9ca24;color:#111">📥 Excel exportieren</button>
+    <span style="flex:1;font-size:14px;color:var(--fg);min-width:180px">Letzter Backup vor mehr als 14 Tagen — sichere deine Daten!</span>
+    <button class="btn btn-sm" onclick="exportExcel()" style="background:var(--yellow);color:#fff">📥 Excel exportieren</button>
     <button class="btn btn-sm" onclick="exportData()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text)">JSON</button>
     <button class="btn-ghost btn-sm" onclick="dismissExportReminder()" style="font-size:18px;padding:2px 8px">✕</button>
   </div>
@@ -218,7 +428,7 @@
 <div id="page-workout" class="page">
 
   <!-- Active-session restore banner -->
-  <div id="active-sess-banner" style="display:none;background:#43e97b15;border:1px solid #43e97b55;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:14px;color:#43e97b;display:none">
+  <div id="active-sess-banner" style="display:none;background:#43e97b15;border:1px solid #43e97b55;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:14px;color:var(--green);display:none">
     ✅ Active session restored — continue where you left off
   </div>
 
@@ -238,9 +448,9 @@
 
       <!-- Session control strip -->
       <div id="gym-session-ctrl" style="margin-bottom:16px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button id="gym-start-btn" class="btn btn-sm" style="background:#43e97b;color:#111">▶ Start Session</button>
+        <button id="gym-start-btn" class="btn btn-sm" style="background:var(--green);color:#111">▶ Start Session</button>
         <button id="gym-end-btn" class="btn btn-sm btn-danger" style="display:none">⏹ End Session</button>
-        <span id="gym-active-badge" style="display:none;background:#43e97b22;border:1px solid #43e97b55;border-radius:6px;padding:3px 12px;font-size:12px;font-weight:700;color:#43e97b;letter-spacing:.5px">● SESSION ACTIVE</span>
+        <span id="gym-active-badge" style="display:none;background:#43e97b22;border:1px solid #43e97b55;border-radius:6px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--green);letter-spacing:.5px">● SESSION ACTIVE</span>
       </div>
 
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px">
@@ -457,7 +667,7 @@
   <div class="card">
     <h3>Data</h3>
     <div class="btn-row">
-      <button class="btn" onclick="exportExcel()" style="background:#f9ca24;color:#111">📥 Excel Export</button>
+      <button class="btn" onclick="exportExcel()" style="background:var(--yellow);color:#fff">📥 Excel Export</button>
       <button class="btn btn-secondary" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Import JSON</button>
       <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)">
@@ -620,7 +830,30 @@ function initExercises(){
 // ════════════════════════════════════════════════════════
 // Nav
 // ════════════════════════════════════════════════════════
+// Canvas kennt keine CSS-Variablen — Token müssen zur Zeichenzeit aufgelöst
+// werden, damit die Diagramme dem Register folgen statt fest verdrahtet zu sein.
+function pal(name){
+  const v=getComputedStyle(document.body).getPropertyValue(name).trim();
+  return v||'#888';
+}
+function palA(name,a){
+  let h=pal(name).replace('#','');
+  if(h.length===3)h=h.split('').map(x=>x+x).join('');
+  const [r,g,b]=[0,2,4].map(i=>parseInt(h.slice(i,i+2),16));
+  return isNaN(r)?pal(name):`rgba(${r},${g},${b},${a})`;
+}
+
+// Welches Register trägt welche Seite. Training, Pläne und Rekorde laufen auf
+// der Anschlagtafel; alles, was gelesen statt angefeuert wird, auf der Wiegekarte.
+const PLATTFORM_PAGES = ['workout','plans','history'];
+function applyRegister(id){
+  document.body.dataset.register = PLATTFORM_PAGES.includes(id) ? 'plattform' : 'wiegekarte';
+  const tc = document.querySelector('meta[name="theme-color"]');
+  if(tc) tc.content = PLATTFORM_PAGES.includes(id) ? '#14140F' : '#EFEDE6';
+}
+
 function showPage(id){
+  applyRegister(id);
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
@@ -748,11 +981,11 @@ function renderDashboard(){
   latest.lbm=getLatestLBM(); // 3-entry rolling average
   const prevLBM=getPrevLBM();
   const metrics=[
-    {key:'weight',label:'Gewicht',unit:'kg',goal:goals.weight,start:start.weight,lower:true,color:'#6c63ff'},
-    {key:'kfa',label:'KFA (Navy)',unit:'%',goal:goals.kfa??17,start:start.kfa??start.bf,lower:true,color:'#ff6584'},
-    {key:'lbm',label:'LBM',unit:'kg',goal:null,start:null,lower:false,color:'#43e97b',trendOnly:true},
-    {key:'waist',label:'Taille',unit:'cm',goal:goals.waist,start:start.waist,lower:true,color:'#f9ca24'},
-    {key:'vo2max',label:'VO2Max',unit:'',goal:goals.vo2max,start:start.vo2max,lower:false,color:'#00c9ff'},
+    {key:'weight',label:'Gewicht',unit:'kg',goal:goals.weight,start:start.weight,lower:true,color:'var(--accent)'},
+    {key:'kfa',label:'KFA (Navy)',unit:'%',goal:goals.kfa??17,start:start.kfa??start.bf,lower:true,color:'var(--red)'},
+    {key:'lbm',label:'LBM',unit:'kg',goal:null,start:null,lower:false,color:'var(--green)',trendOnly:true},
+    {key:'waist',label:'Taille',unit:'cm',goal:goals.waist,start:start.waist,lower:true,color:'var(--yellow)'},
+    {key:'vo2max',label:'VO2Max',unit:'',goal:goals.vo2max,start:start.vo2max,lower:false,color:'var(--accent)'},
   ];
   document.getElementById('goals-grid').innerHTML=metrics.map(m=>{
     const cur=latest[m.key]??m.start,s=m.start,g=m.goal;
@@ -846,7 +1079,7 @@ function renderDashboard(){
   const aiArea=document.getElementById('ai-coach-area');
   if(aiArea){
     const hasKey=Object.values(AI_PROVIDERS).some(p=>!!localStorage.getItem(p.keyStore));
-    aiArea.innerHTML=hasKey?`<div style="margin-bottom:16px"><button id="ai-coach-btn" class="btn" style="background:linear-gradient(135deg,#6c63ff,#a855f7)" onclick="askAICoach()">🤖 Ask AI Coach</button></div>`:'';
+    aiArea.innerHTML=hasKey?`<div style="margin-bottom:16px"><button id="ai-coach-btn" class="btn" style="background:linear-gradient(135deg,var(--accent),var(--accent))" onclick="askAICoach()">🤖 Ask AI Coach</button></div>`:'';
   }
   checkExportReminder();
 }
@@ -864,17 +1097,17 @@ function drawMiniChart(){
   const [padL,padR,padT,padB]=[8,16,8,20];
   const gW=W-padL-padR,gH=80-padT-padB;
   const ty=padT+gH-(pGoal/maxP)*gH;
-  ctx.strokeStyle='#6c63ff55';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+  ctx.strokeStyle=palA('--accent',0.33);ctx.lineWidth=1;ctx.setLineDash([4,3]);
   ctx.beginPath();ctx.moveTo(padL,ty);ctx.lineTo(padL+gW,ty);ctx.stroke();ctx.setLineDash([]);
   const cellW=gW/days.length;
   const barW=Math.max(4,Math.min(cellW-2,cellW*0.7));
   days.forEach((d,i)=>{
     const p=proteins[i];if(p==null)return;
     const x=padL+i*cellW+(cellW-barW)/2,h=(p/maxP)*gH,y=padT+gH-h;
-    ctx.fillStyle=p<pGoal*0.85?'#ff475788':p<=pGoal*1.15?'#43e97b88':'#f9ca2488';
+    ctx.fillStyle=p<pGoal*0.85?palA('--red',0.53):p<=pGoal*1.15?palA('--green',0.53):palA('--yellow',0.53);
     ctx.beginPath();ctx.roundRect(x,y,barW,h,2);ctx.fill();
   });
-  ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='center';
   [0,6,13].forEach(i=>ctx.fillText(days[i].slice(5),padL+i*cellW+cellW/2,76));
 }
 
@@ -1113,7 +1346,7 @@ function renderSessionExercises(){
     <div class="session-exercise" id="sex-${ei}">
       <div class="session-ex-header">
         <div style="flex:1;min-width:0">
-          <span class="session-ex-name">${ex.name}</span>${hasPR?` <span style="background:#f9ca2422;border:1px solid #f9ca2455;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;color:#f9ca24;vertical-align:middle">🏆 PR</span>`:''}
+          <span class="session-ex-name">${ex.name}</span>${hasPR?` <span style="background:#f9ca2422;border:1px solid #f9ca2455;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;color:var(--yellow);vertical-align:middle">🏆 PR</span>`:''}
           <span class="session-ex-group">${ex.group}</span>
           ${lastHint}
           ${lastNoteHint}
@@ -1258,7 +1491,7 @@ function startGymSession(){
   sessionActive=true;
   autoSaveActive();
   updateActiveUI();
-  toast('Session started — auto-saving','#43e97b');
+  toast('Session started — auto-saving','var(--green)');
 }
 
 function endGymSession(){
@@ -1308,7 +1541,7 @@ function saveSession(){
   const typeLabel={gym:'Gym session',crossfit:'CrossFit session',cardio:'Cardio session',basketball:'Basketball session',rest:'Rest day'}[type]||'Session';
   toast(typeLabel+' saved!');
   if(newPRs.length){
-    setTimeout(()=>toast('🏆 PR: '+newPRs.map(p=>`${p.name} (${p.weight}kg×${p.reps})`).join(', '),'#f9ca24'),2400);
+    setTimeout(()=>toast('🏆 PR: '+newPRs.map(p=>`${p.name} (${p.weight}kg×${p.reps})`).join(', '),'var(--yellow)'),2400);
   }
   currentSession={date:today(),type:'gym',comment:'',exercises:[],duration:null,avgHR:null,calories:null,intensity:'',gymDuration:null,gymAvgHR:null,gymCals:null};
   renderWorkoutPage();
@@ -1663,9 +1896,9 @@ function updatePlanEx(planId,di,ei,field,val){
 // Charts
 // ════════════════════════════════════════════════════════
 const METRICS=[
-  {key:'weight',label:'Gewicht (kg)',color:'#6c63ff'},
-  {key:'kfa',label:'KFA (%)',color:'#ff6584'},
-  {key:'waist',label:'Taille (cm)',color:'#f9ca24'},
+  {key:'weight',label:'Gewicht (kg)',color:'var(--accent)'},
+  {key:'kfa',label:'KFA (%)',color:'var(--red)'},
+  {key:'waist',label:'Taille (cm)',color:'var(--yellow)'},
 ];
 let activeMetric='weight';
 
@@ -1689,7 +1922,7 @@ function drawLBMChart(){
   const entries=getEntries().filter(e=>e.lbm!=null);
   const W=canvas.parentElement.offsetWidth||700;
   canvas.width=W;canvas.height=200;ctx.clearRect(0,0,W,200);
-  if(!entries.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('Noch keine LBM-Daten',W/2,100);return}
+  if(!entries.length){ctx.fillStyle=pal('--text2');ctx.font='14px Archivo';ctx.textAlign='center';ctx.fillText('Noch keine LBM-Daten',W/2,100);return}
   const vals=entries.map(e=>e.lbm);
   // 3-entry rolling average for each point
   const smooth=vals.map((_,i)=>{
@@ -1703,35 +1936,35 @@ function drawLBMChart(){
   const toX=i=>padL+(i/(entries.length-1||1))*gW;
   const toY=v=>padT+(1-(v-minV)/(maxV-minV))*gH;
   // Grid
-  ctx.strokeStyle='#2e2e45';ctx.lineWidth=1;
+  ctx.strokeStyle=pal('--border');ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=padT+(i/4)*gH;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
-    ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='right';
+    ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='right';
     ctx.fillText((maxV-i/4*(maxV-minV)).toFixed(1),padL-4,y+3);
   }
   // Gradient fill under smooth line
   const grad=ctx.createLinearGradient(0,padT,0,padT+gH);
-  grad.addColorStop(0,'#43e97b22');grad.addColorStop(1,'#43e97b05');
+  grad.addColorStop(0,palA('--green',0.13));grad.addColorStop(1,palA('--green',0.02));
   ctx.beginPath();ctx.moveTo(toX(0),padT+gH);
   smooth.forEach((_,i)=>ctx.lineTo(toX(i),toY(smooth[i])));
   ctx.lineTo(toX(entries.length-1),padT+gH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
   // Raw measurement dots (grey, small)
-  vals.forEach((_,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(vals[i]),2.5,0,Math.PI*2);ctx.fillStyle='#9090b055';ctx.fill()});
+  vals.forEach((_,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(vals[i]),2.5,0,Math.PI*2);ctx.fillStyle=palA('--text2',0.33);ctx.fill()});
   // Smoothed trendline (green, main)
-  ctx.strokeStyle='#43e97b';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  ctx.strokeStyle=pal('--green');ctx.lineWidth=2.5;ctx.lineJoin='round';
   ctx.beginPath();smooth.forEach((_,i)=>i===0?ctx.moveTo(toX(i),toY(smooth[i])):ctx.lineTo(toX(i),toY(smooth[i])));ctx.stroke();
   // Dots on smooth line
-  smooth.forEach((_,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(smooth[i]),3.5,0,Math.PI*2);ctx.fillStyle='#43e97b';ctx.fill()});
+  smooth.forEach((_,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(smooth[i]),3.5,0,Math.PI*2);ctx.fillStyle=pal('--green');ctx.fill()});
   // X labels
-  ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='center';
   const step=Math.max(1,Math.floor(entries.length/8));
   entries.forEach((e,i)=>{if(i%step===0||i===entries.length-1)ctx.fillText(e.date.slice(5),toX(i),200-padB+14)});
   // Legend
-  ctx.font='10px Segoe UI';ctx.textAlign='left';
-  ctx.fillStyle='#9090b055';ctx.beginPath();ctx.arc(padL+5,padT+gH+22,3,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#9090b0';ctx.fillText('Messwert',padL+12,padT+gH+26);
-  ctx.fillStyle='#43e97b';ctx.beginPath();ctx.arc(padL+85,padT+gH+22,3.5,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#9090b0';ctx.fillText('Ø 3 Einträge',padL+92,padT+gH+26);
+  ctx.font='10px Sometype Mono';ctx.textAlign='left';
+  ctx.fillStyle=palA('--text2',0.33);ctx.beginPath();ctx.arc(padL+5,padT+gH+22,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=pal('--text2');ctx.fillText('Messwert',padL+12,padT+gH+26);
+  ctx.fillStyle=pal('--green');ctx.beginPath();ctx.arc(padL+85,padT+gH+22,3.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=pal('--text2');ctx.fillText('Ø 3 Einträge',padL+92,padT+gH+26);
 }
 function setMetric(k){activeMetric=k;renderCharts()}
 
@@ -1743,23 +1976,23 @@ function drawMetricChart(){
   const goalVal=goals[activeMetric]??0;
   const W=canvas.parentElement.offsetWidth||700;
   canvas.width=W;canvas.height=220;ctx.clearRect(0,0,W,220);
-  if(!entries.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('Noch keine Daten',W/2,110);return}
+  if(!entries.length){ctx.fillStyle=pal('--text2');ctx.font='14px Archivo';ctx.textAlign='center';ctx.fillText('Noch keine Daten',W/2,110);return}
   const vals=entries.map(e=>e[activeMetric]);
   const minV=Math.min(...vals,goalVal)*0.97,maxV=Math.max(...vals,goalVal)*1.03;
   const[padL,padR,padT,padB]=[44,16,12,30];
   const gW=W-padL-padR,gH=220-padT-padB;
   const toX=i=>padL+(i/(entries.length-1||1))*gW;
   const toY=v=>padT+(1-(v-minV)/(maxV-minV))*gH;
-  ctx.strokeStyle='#2e2e45';ctx.lineWidth=1;
+  ctx.strokeStyle=pal('--border');ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=padT+(i/4)*gH;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
-    ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='right';
+    ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='right';
     ctx.fillText((maxV-i/4*(maxV-minV)).toFixed(1),padL-4,y+3);
   }
   const gy=toY(goalVal);
   ctx.strokeStyle=m.color+'55';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
   ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+gW,gy);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle=m.color+'99';ctx.font='10px Segoe UI';ctx.textAlign='left';ctx.fillText('Ziel',padL+4,gy-4);
+  ctx.fillStyle=m.color+'99';ctx.font='10px Sometype Mono';ctx.textAlign='left';ctx.fillText('Ziel',padL+4,gy-4);
   const grad=ctx.createLinearGradient(0,padT,0,padT+gH);
   grad.addColorStop(0,m.color+'33');grad.addColorStop(1,m.color+'05');
   ctx.beginPath();ctx.moveTo(toX(0),padT+gH);
@@ -1768,7 +2001,7 @@ function drawMetricChart(){
   ctx.strokeStyle=m.color;ctx.lineWidth=2.5;ctx.lineJoin='round';
   ctx.beginPath();entries.forEach((_,i)=>i===0?ctx.moveTo(toX(i),toY(vals[i])):ctx.lineTo(toX(i),toY(vals[i])));ctx.stroke();
   entries.forEach((_,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(vals[i]),3.5,0,Math.PI*2);ctx.fillStyle=m.color;ctx.fill()});
-  ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='center';
   const step=Math.max(1,Math.floor(entries.length/8));
   entries.forEach((e,i)=>{if(i%step===0||i===entries.length-1)ctx.fillText(e.date.slice(5),toX(i),220-padB+14)});
 }
@@ -1786,7 +2019,7 @@ function drawKFAChart(){
   }).filter(Boolean);
   const W=canvas.parentElement.offsetWidth||700;
   canvas.width=W;canvas.height=260;ctx.clearRect(0,0,W,260);
-  if(!pts.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('Noch keine KFA-Daten',W/2,130);return}
+  if(!pts.length){ctx.fillStyle=pal('--text2');ctx.font='14px Archivo';ctx.textAlign='center';ctx.fillText('Noch keine KFA-Daten',W/2,130);return}
   // Linear regression for forecast
   const t0=new Date(pts[0].date).getTime();
   const regPts=pts.map(p=>({x:(new Date(p.date).getTime()-t0)/86400000,y:p.val}));
@@ -1816,64 +2049,64 @@ function drawKFAChart(){
   const toX=days=>padL+(days/totalDays)*gW;
   const toY=v=>padT+(1-(v-minV)/(maxV-minV))*gH;
   // Grid
-  ctx.strokeStyle='#2e2e45';ctx.lineWidth=1;
+  ctx.strokeStyle=pal('--border');ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=padT+(i/4)*gH;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
-    ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='right';
+    ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='right';
     ctx.fillText((maxV-i/4*(maxV-minV)).toFixed(1),padL-4,y+3);
   }
   // Goal line
   const gy=toY(goalKFA);
-  ctx.strokeStyle='#ff658455';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+  ctx.strokeStyle=palA('--red',0.33);ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
   ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+gW,gy);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle='#ff658499';ctx.font='10px Segoe UI';ctx.textAlign='left';ctx.fillText(`Ziel: ${goalKFA}%`,padL+4,gy-4);
+  ctx.fillStyle=palA('--red',0.6);ctx.font='10px Sometype Mono';ctx.textAlign='left';ctx.fillText(`Ziel: ${goalKFA}%`,padL+4,gy-4);
   // Gradient fill for historical data
   const grad=ctx.createLinearGradient(0,padT,0,padT+gH);
-  grad.addColorStop(0,'#ff658433');grad.addColorStop(1,'#ff658405');
+  grad.addColorStop(0,palA('--red',0.2));grad.addColorStop(1,palA('--red',0.02));
   ctx.beginPath();ctx.moveTo(toX(regPts[0].x),padT+gH);
   regPts.forEach(p=>ctx.lineTo(toX(p.x),toY(p.val)));
   ctx.lineTo(toX(regPts[regPts.length-1].x),padT+gH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
   // Historical line
-  ctx.strokeStyle='#ff6584';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  ctx.strokeStyle=pal('--red');ctx.lineWidth=2.5;ctx.lineJoin='round';
   ctx.beginPath();regPts.forEach((p,i)=>i===0?ctx.moveTo(toX(p.x),toY(p.val)):ctx.lineTo(toX(p.x),toY(p.val)));ctx.stroke();
   // Dots: orange = Omron (bf), blue = Navy (kfa)
   pts.forEach((p,i)=>{
     ctx.beginPath();ctx.arc(toX(regPts[i].x),toY(p.val),4,0,Math.PI*2);
-    ctx.fillStyle=p.isNavy?'#00c9ff':'#f0932b';ctx.fill();
+    ctx.fillStyle=p.isNavy?pal('--accent'):pal('--yellow');ctx.fill();
   });
   // Vertical separator at today
   const todayX=(new Date(todayStr).getTime()-t0)/86400000;
   if(todayX>=0&&todayX<=totalDays){
-    ctx.strokeStyle='#9090b066';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.strokeStyle=palA('--text2',0.4);ctx.lineWidth=1;ctx.setLineDash([4,3]);
     ctx.beginPath();ctx.moveTo(toX(todayX),padT);ctx.lineTo(toX(todayX),padT+gH);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='#9090b0';ctx.font='9px Segoe UI';ctx.textAlign='center';
+    ctx.fillStyle=pal('--text2');ctx.font='9px Sometype Mono';ctx.textAlign='center';
     ctx.fillText('Heute',toX(todayX),padT-2);
   }
   // Forecast line
   if(n>=3){
-    ctx.strokeStyle='#ff658488';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+    ctx.strokeStyle=palA('--red',0.53);ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(toX(regPts[regPts.length-1].x),toY(pts[pts.length-1].val));
     ctx.lineTo(toX(foreEndX),toY(intercept+slope*foreEndX));ctx.stroke();ctx.setLineDash([]);
     // Goal date annotation
     if(goalDateStr){
       const gx2=(new Date(goalDateStr).getTime()-t0)/86400000;
-      ctx.strokeStyle='#43e97b66';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.strokeStyle=palA('--green',0.4);ctx.lineWidth=1;ctx.setLineDash([3,3]);
       ctx.beginPath();ctx.moveTo(toX(gx2),padT);ctx.lineTo(toX(gx2),padT+gH);ctx.stroke();ctx.setLineDash([]);
-      ctx.fillStyle='#43e97b';ctx.font='10px Segoe UI';ctx.textAlign='center';
+      ctx.fillStyle=pal('--green');ctx.font='10px Sometype Mono';ctx.textAlign='center';
       ctx.fillText(`Zieldatum: ${goalDateStr.slice(5)}`,toX(gx2),padT+gH+28);
     }else if(slope>=0){
-      ctx.fillStyle='#ff4757';ctx.font='10px Segoe UI';ctx.textAlign='left';
+      ctx.fillStyle=pal('--red');ctx.font='10px Sometype Mono';ctx.textAlign='left';
       ctx.fillText('Kein Zieldatum bei aktuellem Trend',padL,padT+gH+28);
     }
   }
   // X axis labels
-  ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='center';
   const step=Math.max(1,Math.floor(pts.length/6));
   pts.forEach((p,i)=>{if(i%step===0||i===pts.length-1)ctx.fillText(p.date.slice(5),toX(regPts[i].x),padT+gH+14)});
   // Legend
-  ctx.font='10px Segoe UI';ctx.textAlign='left';
-  ctx.fillStyle='#f0932b';ctx.fillRect(padL,padT+gH+36,10,10);ctx.fillStyle='#9090b0';ctx.fillText('Omron (historisch)',padL+14,padT+gH+45);
-  ctx.fillStyle='#00c9ff';ctx.fillRect(padL+140,padT+gH+36,10,10);ctx.fillStyle='#9090b0';ctx.fillText('Navy (berechnet)',padL+154,padT+gH+45);
+  ctx.font='10px Sometype Mono';ctx.textAlign='left';
+  ctx.fillStyle=pal('--yellow');ctx.fillRect(padL,padT+gH+36,10,10);ctx.fillStyle=pal('--text2');ctx.fillText('Omron (historisch)',padL+14,padT+gH+45);
+  ctx.fillStyle=pal('--accent');ctx.fillRect(padL+140,padT+gH+36,10,10);ctx.fillStyle=pal('--text2');ctx.fillText('Navy (berechnet)',padL+154,padT+gH+45);
 }
 
 function drawProteinChart(){
@@ -1882,7 +2115,7 @@ function drawProteinChart(){
   const W=canvas.parentElement.offsetWidth||700;
   canvas.width=W;canvas.height=160;ctx.clearRect(0,0,W,160);
   const recent=entries.filter(e=>e.protein!=null).slice(-30);
-  if(!recent.length){ctx.fillStyle='#9090b0';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('No nutrition data yet',W/2,80);return}
+  if(!recent.length){ctx.fillStyle=pal('--text2');ctx.font='14px Archivo';ctx.textAlign='center';ctx.fillText('No nutrition data yet',W/2,80);return}
   const pGoal2=getProteinGoal();
   // Update chart title dynamically
   const ptitle=document.getElementById('protein-chart-title');
@@ -1890,22 +2123,22 @@ function drawProteinChart(){
   const maxP=Math.max(pGoal2*1.4,...recent.map(e=>e.protein));
   const[padL,padR,padT,padB]=[44,8,10,26];
   const gW=W-padL-padR,gH=160-padT-padB;
-  ctx.strokeStyle='#2e2e45';ctx.lineWidth=1;
+  ctx.strokeStyle=pal('--border');ctx.lineWidth=1;
   [0,.5,1].forEach(f=>{
     const y=padT+f*gH;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
-    ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='right';ctx.fillText(Math.round(maxP*(1-f)),padL-4,y+3);
+    ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='right';ctx.fillText(Math.round(maxP*(1-f)),padL-4,y+3);
   });
   const ty=padT+(1-(pGoal2/maxP))*gH;
-  ctx.strokeStyle='#6c63ff88';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.strokeStyle=palA('--accent',0.53);ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
   ctx.beginPath();ctx.moveTo(padL,ty);ctx.lineTo(padL+gW,ty);ctx.stroke();ctx.setLineDash([]);
   const cellW=gW/recent.length;
   const barW=Math.max(4,cellW*0.7);
   recent.forEach((e,i)=>{
     const x=padL+i*cellW+(cellW-barW)/2,h=(e.protein/maxP)*gH,y=padT+gH-h;
-    ctx.fillStyle=e.protein<pGoal2*0.85?'#ff475799':e.protein<=pGoal2*1.15?'#43e97b99':'#f9ca2499';
+    ctx.fillStyle=e.protein<pGoal2*0.85?palA('--red',0.6):e.protein<=pGoal2*1.15?palA('--green',0.6):palA('--yellow',0.6);
     ctx.beginPath();ctx.roundRect(x,y,barW,h,2);ctx.fill();
   });
-  ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='center';
   const step=Math.max(1,Math.floor(recent.length/6));
   recent.forEach((e,i)=>{if(i%step===0||i===recent.length-1)ctx.fillText(e.date.slice(5),padL+i*cellW+cellW/2,160-padB+14)});
 }
@@ -1931,11 +2164,11 @@ function drawWorkoutChart(){
   const gW=W-padL-padR,gH=160-padT-padB,maxVal=5;
   const bW=gW/weeks.length;
   [0,1,2,3].forEach(v=>{
-    const y=padT+(1-v/maxVal)*gH;ctx.strokeStyle='#2e2e45';ctx.lineWidth=1;
+    const y=padT+(1-v/maxVal)*gH;ctx.strokeStyle=pal('--border');ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
-    ctx.fillStyle='#9090b0';ctx.font='10px Segoe UI';ctx.textAlign='right';ctx.fillText(v,padL-4,y+3);
+    ctx.fillStyle=pal('--text2');ctx.font='10px Sometype Mono';ctx.textAlign='right';ctx.fillText(v,padL-4,y+3);
   });
-  const types=[{key:'gym',color:'#6c63ff'},{key:'cardio',color:'#43e97b'},{key:'basketball',color:'#f9ca24'}];
+  const types=[{key:'gym',color:'var(--accent)'},{key:'cardio',color:'var(--green)'},{key:'basketball',color:'var(--yellow)'}];
   weeks.forEach((wk,i)=>{
     let yOff=0;
     types.forEach(t=>{
@@ -1943,10 +2176,10 @@ function drawWorkoutChart(){
       ctx.fillStyle=t.color+'bb';ctx.beginPath();ctx.roundRect(padL+i*bW+4,padT+gH-yOff-h,bW-10,h,2);ctx.fill();
       yOff+=h;
     });
-    ctx.fillStyle='#9090b0';ctx.font='9px Segoe UI';ctx.textAlign='center';ctx.fillText(wk.label,padL+i*bW+bW/2,160-padB+14);
+    ctx.fillStyle=pal('--text2');ctx.font='9px Sometype Mono';ctx.textAlign='center';ctx.fillText(wk.label,padL+i*bW+bW/2,160-padB+14);
   });
-  ctx.font='10px Segoe UI';ctx.textAlign='left';
-  types.forEach((t,i)=>{ctx.fillStyle=t.color;ctx.fillRect(padL+i*80,padT,10,10);ctx.fillStyle='#9090b0';ctx.fillText(t.key,padL+i*80+14,padT+9)});
+  ctx.font='10px Sometype Mono';ctx.textAlign='left';
+  types.forEach((t,i)=>{ctx.fillStyle=t.color;ctx.fillRect(padL+i*80,padT,10,10);ctx.fillStyle=pal('--text2');ctx.fillText(t.key,padL+i*80+14,padT+9)});
 }
 
 // ════════════════════════════════════════════════════════
@@ -2021,9 +2254,9 @@ function renderHistory(){
     const outBreakdown=outParts.length>1?` (${outParts.join(' + ')})`:'';
     const balanceHTML=showBalance?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);align-items:center">
       <span style="color:var(--text2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Calories:</span>
-      ${calsIn?`<span class="badge" style="background:#1a2e1a;color:#43e97b">🍽️ IN: ${calsIn} kcal</span>`:''}
-      ${totalOut?`<span class="badge" style="background:#2e1a1a;color:#f0932b">🔥 OUT: ${totalOut} kcal${outBreakdown}</span>`:''}
-      ${(calsIn&&totalOut)?`<span class="badge" style="background:${calsIn-totalOut>=0?'#1a1a2e':'#2e1a1a'};color:${calsIn-totalOut>=0?'#6c63ff':'#ff4757'}">⚖️ Net: ${calsIn-totalOut>0?'+':''}${calsIn-totalOut} kcal</span>`:''}
+      ${calsIn?`<span class="badge" style="background:var(--surface2);color:var(--green)">🍽️ IN: ${calsIn} kcal</span>`:''}
+      ${totalOut?`<span class="badge" style="background:var(--surface2);color:var(--yellow)">🔥 OUT: ${totalOut} kcal${outBreakdown}</span>`:''}
+      ${(calsIn&&totalOut)?`<span class="badge" style="background:${calsIn-totalOut>=0?'var(--surface2)':'var(--surface2)'};color:${calsIn-totalOut>=0?'var(--accent)':'var(--red)'}">⚖️ Net: ${calsIn-totalOut>0?'+':''}${calsIn-totalOut} kcal</span>`:''}
     </div>`:'';
     return `<div class="history-item" style="${showBalance?'flex-direction:column;align-items:stretch':''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
@@ -2236,9 +2469,9 @@ async function askAICoach(){
     const msg = e.message || 'Unknown error';
     toast('AI Coach error: ' + msg, 'var(--red)');
     if(respCard){
-      respCard.innerHTML = `<div class="card" style="border-color:#ff4757;margin-bottom:16px">
+      respCard.innerHTML = `<div class="card" style="border-color:var(--red);margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <h3 style="color:#ff4757;margin:0;font-size:14px">⚠️ AI Coach Error</h3>
+          <h3 style="color:var(--red);margin:0;font-size:14px">⚠️ AI Coach Error</h3>
           <button class="btn-ghost" onclick="document.getElementById('ai-response-card').innerHTML=''" title="Dismiss">✕</button>
         </div>
         <div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${escHtml(msg)}</div>
@@ -2479,7 +2712,7 @@ function calcWeeklyComparison(){
   let trend='→';
   if(cur>last+5)trend='↑';
   else if(cur<last-5)trend='↓';
-  const trendColor=trend==='↑'?'#43e97b':trend==='↓'?'#ff4757':'#f9ca24';
+  const trendColor=trend==='↑'?'var(--green)':trend==='↓'?'var(--red)':'var(--yellow)';
   return{cur,last,personalBest,avg4,trend,trendColor,scores:scores.slice(0,8),weeks};
 }
 
@@ -2489,7 +2722,7 @@ function renderLongevityScore(){
   const r=65,cx=80,cy=80,sw=14;
   const circ=+(2*Math.PI*r).toFixed(1);
   const offset=+(circ*(1-total/100)).toFixed(1);
-  const col=total>=80?'#43e97b':total>=60?'#f9ca24':'#ff4757';
+  const col=total>=80?'var(--green)':total>=60?'var(--yellow)':'var(--red)';
   // Bio Age section
   const ba=calcBioAge();
   const baHTML=ba?`
@@ -2497,14 +2730,14 @@ function renderLongevityScore(){
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:12px">Biologisches Alter</div>
       <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
         <div style="text-align:center;min-width:90px">
-          <div style="font-size:44px;font-weight:700;line-height:1;color:${ba.bioAge<ba.chronoAge?'#43e97b':'#ff4757'}">${ba.bioAge}</div>
+          <div style="font-size:44px;font-weight:700;line-height:1;color:${ba.bioAge<ba.chronoAge?'var(--green)':'var(--red)'}">${ba.bioAge}</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Chronologisch: ${ba.chronoAge}</div>
-          <div style="font-size:12px;font-weight:600;color:${ba.bioAge<ba.chronoAge?'#43e97b':'#ff4757'};margin-top:3px">${ba.bioAge<ba.chronoAge?'↓ '+( ba.chronoAge-ba.bioAge)+' J. jünger':ba.bioAge>ba.chronoAge?'↑ '+(ba.bioAge-ba.chronoAge)+' J. älter':'= Deckungsgleich'}</div>
+          <div style="font-size:12px;font-weight:600;color:${ba.bioAge<ba.chronoAge?'var(--green)':'var(--red)'};margin-top:3px">${ba.bioAge<ba.chronoAge?'↓ '+( ba.chronoAge-ba.bioAge)+' J. jünger':ba.bioAge>ba.chronoAge?'↑ '+(ba.bioAge-ba.chronoAge)+' J. älter':'= Deckungsgleich'}</div>
         </div>
         <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:7px">
           ${ba.components.map(c=>{
             const pct=Math.max(0,Math.min(100,Math.round((c.norm+2)/4*100)));
-            const bCol=c.norm>=0?'#43e97b':'#ff4757';
+            const bCol=c.norm>=0?'var(--green)':'var(--red)';
             const dateHint=c.sourceDate?` <span style="font-size:10px;opacity:.7">(${c.sourceDate.slice(5)})</span>`:'';
             return`<div>
               <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:2px">
@@ -2530,10 +2763,10 @@ function renderLongevityScore(){
           stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
           stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
         <text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="38" font-weight="700" fill="${col}" font-family="inherit">${total}</text>
-        <text x="${cx}" y="${cy+20}" text-anchor="middle" font-size="13" fill="#9090b0" font-family="inherit">/ 100</text>
+        <text x="${cx}" y="${cy+20}" text-anchor="middle" font-size="13" fill='var(--text2)' font-family="inherit">/ 100</text>
       </svg>
       <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:14px">
-        ${[['Body KPIs (4 Wk.)',body,'#6c63ff'],['Consistency (4 Wk.)',consistency,'#43e97b'],['Nutrition (28 Tage)',nutrition,'#f9ca24']].map(([lb,sc,c])=>`
+        ${[['Body KPIs (4 Wk.)',body,'var(--accent)'],['Consistency (4 Wk.)',consistency,'var(--green)'],['Nutrition (28 Tage)',nutrition,'var(--yellow)']].map(([lb,sc,c])=>`
           <div>
             <div style="display:flex;justify-content:space-between;margin-bottom:4px">
               <span style="font-size:12px;color:var(--text2)">${lb}</span>
@@ -2612,7 +2845,7 @@ function renderWeeklyScore(){
   const{cur,last,personalBest,avg4,trend,trendColor,scores,weeks}=calcWeeklyComparison();
   const pctOfBest=personalBest>0?Math.round(cur/personalBest*100):100;
   const vsAvg=cur-avg4;
-  const barCol=pctOfBest>=80?'#43e97b':pctOfBest>=50?'#f9ca24':'#ff4757';
+  const barCol=pctOfBest>=80?'var(--green)':pctOfBest>=50?'var(--yellow)':'var(--red)';
   // Sparkline last 8 weeks (oldest left, current right)
   const sparkMax=Math.max(...scores,1);
   const sparkBars=['▁','▂','▃','▄','▅','▆','▇','█'];
@@ -3226,6 +3459,7 @@ document.getElementById('sess-date').value=today();
   }catch(e){/* best-effort */}
 })();
 
+applyRegister('dashboard');
 renderDashboard();
 
 window.addEventListener('resize',()=>{
