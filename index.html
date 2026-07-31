@@ -124,6 +124,9 @@
   .plan-ex-targets input{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:4px 7px;outline:none;width:60px}
   .plan-ex-targets input:focus{border-color:var(--accent)}
   .plan-ex-targets .lbl{color:var(--text2);font-size:12px}
+  .plan-ex-targets select{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;padding:4px 5px;outline:none;width:auto;cursor:pointer}
+  .plan-ex-targets select:focus{border-color:var(--accent)}
+  .plan-ex-bw{color:var(--text2);font-size:12px;font-style:italic;width:65px;text-align:center}
 
   /* ── Modal ── */
   .modal-overlay{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:1000;display:none}
@@ -494,6 +497,18 @@ const WORKOUT_TYPES_KEY   = 'trackfit_workout_types';
 const BUILTIN_TYPES       = ['gym','crossfit','rest'];
 const LAST_EXPORT_KEY     = 'trackfit_last_export';
 const PROFIL_KEY          = 'trackfit_profil';
+// Units a plan exercise target can be measured in. 'none' = bodyweight only,
+// no target value (e.g. Scapula Pull-ups).
+const PLAN_UNITS = [
+  {id:'kg',   label:'kg',   step:'0.5'},
+  {id:'sec',  label:'sec',  step:'1'},
+  {id:'min',  label:'min',  step:'1'},
+  {id:'m',    label:'m',    step:'1'},
+  {id:'cal',  label:'cal',  step:'1'},
+  {id:'none', label:'n.a.', step:null},
+];
+const planUnitLabel = u => (PLAN_UNITS.find(x=>x.id===u)||PLAN_UNITS[0]).label;
+
 const DEFAULT_WORKOUT_TYPES = [
   {id:'gym',        label:'Gym / Cleverfit',    icon:'🏋️'},
   {id:'crossfit',   label:'CrossFit',            icon:'🤸'},
@@ -898,15 +913,18 @@ function getLastExerciseData(exName){
     if(!valid.length)continue;
     const weights=[...new Set(valid.map(st=>st.weight).filter(w=>w!==''))];
     const repsArr=[...new Set(valid.map(st=>st.reps).filter(r=>r!==''))];
+    const u=(ex.unit||'kg')==='none'?'':' '+planUnitLabel(ex.unit||'kg');
     let summary;
-    if(weights.length===1&&repsArr.length===1){
-      summary=`${valid.length}×${repsArr[0]} @ ${weights[0]} kg`;
+    if(!weights.length){
+      summary=`${valid.length}×${repsArr.join('/')||'?'}`;
+    } else if(weights.length===1&&repsArr.length===1){
+      summary=`${valid.length}×${repsArr[0]} @ ${weights[0]}${u}`;
     } else if(valid.length<=4){
-      summary=valid.map(st=>`${st.reps||'?'}×${st.weight||'?'} kg`).join(', ');
+      summary=valid.map(st=>`${st.reps||'?'}×${st.weight||'?'}${u}`).join(', ');
     } else {
       const nums=weights.map(Number).filter(n=>!isNaN(n));
       const mn=Math.min(...nums),mx=Math.max(...nums);
-      summary=`${valid.length} sets @ ${mn}–${mx} kg`;
+      summary=`${valid.length} sets @ ${mn}–${mx}${u}`;
     }
     const date=s.date?s.date.slice(5):'';
     return`${summary} (${date})`;
@@ -1048,7 +1066,7 @@ function loadPlanDay(){
       const ex=exercises.find(e=>e.id===pe.exId);
       if(!ex)return;
       const sets=Array.from({length:pe.targetSets||3},()=>({reps:pe.targetReps||'',weight:pe.targetWeight||'',comment:''}));
-      currentSession.exercises.push({exId:ex.id,name:ex.name,group:ex.group,comment:'',sets});
+      currentSession.exercises.push({exId:ex.id,name:ex.name,group:ex.group,comment:'',unit:pe.unit||'kg',sets});
     });
     renderSessionExercises();
     toast(`Geladen: ${day.label}`);
@@ -1090,7 +1108,7 @@ function renderSessionExercises(){
     const lastHint=lastEx?`<div style="color:var(--text2);font-size:11px;margin-top:3px;letter-spacing:.1px">↩ Last: ${lastEx}</div>`:'';
     const lastNote=getLastExerciseComment(ex.name);
     const lastNoteHint=lastNote?`<div style="color:var(--yellow);font-size:11px;margin-top:5px;padding:5px 9px;background:#f9ca2415;border-left:2px solid var(--yellow);border-radius:4px;line-height:1.4">💭 <span style="color:var(--text)">${escHtml(lastNote.text)}</span> <span style="color:var(--text2);font-style:italic;margin-left:4px">(${lastNote.date})</span></div>`:'';
-    const hasPR=ex.sets.some(s=>isCurrentSetPR(ex.name,s.weight,s.reps));
+    const hasPR=ex.sets.some(s=>isCurrentSetPR(ex.name,s.weight,s.reps,ex.unit));
     return`
     <div class="session-exercise" id="sex-${ei}">
       <div class="session-ex-header">
@@ -1114,7 +1132,7 @@ function renderSessionExercises(){
           <thead><tr>
             <th>#</th>
             <th class="col-reps">Reps</th>
-            <th class="col-weight">kg</th>
+            <th class="col-weight">${planUnitLabel(ex.unit||'kg')}</th>
             <th class="col-comment">Note</th>
             <th class="col-del"></th>
           </tr></thead>
@@ -1436,10 +1454,22 @@ function createPlan(){
   toast('Plan created!');renderPlans();
 }
 
-function renderPlans(){
+// Plan ids may be numbers (Date.now) or strings (imported data) — always
+// compare loosely so lookups can't silently miss.
+function findPlan(plans,id){const s=String(id);return plans.find(x=>String(x.id)===s);}
+
+// Re-rendering the plan list rebuilds all HTML and would collapse every open
+// accordion. Capture which bodies are open first, restore them afterwards, so
+// adding/removing/reordering an exercise keeps you where you were.
+function renderPlans(openOverrides){
+  const openIds=new Set();
+  document.querySelectorAll('#plans-list .plan-body.open,#plans-list .plan-day-body.open')
+    .forEach(el=>{if(el.id)openIds.add(el.id)});
+  (openOverrides||[]).forEach(id=>openIds.add(id));
   const plans=getPlans();
   document.getElementById('plans-list').innerHTML=plans.length?plans.map(p=>planCardHTML(p)).join('')
     :`<div class="empty-state">No plans yet. Create your first plan above.</div>`;
+  openIds.forEach(id=>document.getElementById(id)?.classList.add('open'));
 }
 
 function planCardHTML(p){
@@ -1454,19 +1484,28 @@ function planCardHTML(p){
           <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();removePlanDay(${p.id},${di})">✕</button>
         </div>
       </div>
-      <div class="plan-day-body">
+      <div class="plan-day-body" id="plan-day-body-${p.id}-${di}">
         ${d.exercises.map((pe,pei)=>{
           const ex=exercises.find(e=>e.id===pe.exId);
+          const unit=pe.unit||'kg';
+          const unitDef=PLAN_UNITS.find(u=>u.id===unit)||PLAN_UNITS[0];
+          const valueField=unitDef.step===null
+            ? `<span class="plan-ex-bw" title="Nur Körpergewicht">Körpergew.</span>`
+            : `<input type="number" min="0" step="${unitDef.step}" value="${pe.targetWeight}" onchange="updatePlanEx(${p.id},${di},${pei},'targetWeight',this.value)" style="width:65px" placeholder="—">`;
           return `<div class="plan-ex-row">
-            <span class="plan-ex-name">${ex?ex.name:'(deleted)'}</span>
+            <span class="plan-ex-name">${escHtml(ex?ex.name:'(deleted)')}</span>
             <div class="plan-ex-targets">
               <span class="lbl">Sets</span>
               <input type="number" min="1" value="${pe.targetSets}" onchange="updatePlanEx(${p.id},${di},${pei},'targetSets',this.value)" style="width:55px">
               <span class="lbl">Reps</span>
               <input type="text" value="${pe.targetReps}" onchange="updatePlanEx(${p.id},${di},${pei},'targetReps',this.value)" style="width:55px" placeholder="10">
-              <span class="lbl">kg</span>
-              <input type="number" min="0" step="0.5" value="${pe.targetWeight}" onchange="updatePlanEx(${p.id},${di},${pei},'targetWeight',this.value)" style="width:65px" placeholder="—">
-              <button class="btn-ghost" onclick="removePlanEx(${p.id},${di},${pei})">✕</button>
+              <select onchange="updatePlanEx(${p.id},${di},${pei},'unit',this.value)" title="Einheit">
+                ${PLAN_UNITS.map(u=>`<option value="${u.id}"${u.id===unit?' selected':''}>${u.label}</option>`).join('')}
+              </select>
+              ${valueField}
+              <button class="btn-ghost" onclick="movePlanEx(${p.id},${di},${pei},-1)" title="Nach oben"${pei===0?' disabled style="opacity:.3"':''}>↑</button>
+              <button class="btn-ghost" onclick="movePlanEx(${p.id},${di},${pei},1)" title="Nach unten"${pei===d.exercises.length-1?' disabled style="opacity:.3"':''}>↓</button>
+              <button class="btn-ghost" onclick="removePlanEx(${p.id},${di},${pei})" title="Entfernen">✕</button>
             </div>
           </div>`;
         }).join('')}
@@ -1493,7 +1532,7 @@ function planCardHTML(p){
         <button class="btn btn-danger btn-sm" onclick="deletePlan(${p.id})">Delete</button>
       </div>
     </div>
-    <div class="plan-body">
+    <div class="plan-body" id="plan-body-${p.id}">
       ${daysHTML}
       <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="addPlanDay(${p.id})">+ Add Day</button>
     </div>
@@ -1529,20 +1568,17 @@ function deletePlan(id){
 
 function addPlanDay(planId){
   const plans=getPlans();
-  const p=plans.find(x=>x.id===planId);if(!p)return;
+  const p=findPlan(plans,planId);if(!p)return;
   const label=`Day ${String.fromCharCode(65+p.days.length)}`;
   p.days.push({label,exercises:[]});
-  set(PLANS_KEY,plans);renderPlans();
-  // Re-open the plan body
-  setTimeout(()=>{
-    const card=document.getElementById('plan-'+planId);
-    if(card)card.querySelector('.plan-body')?.classList.add('open');
-  },50);
+  set(PLANS_KEY,plans);
+  // Keep the plan open and expand the freshly created day
+  renderPlans([`plan-body-${p.id}`,`plan-day-body-${p.id}-${p.days.length-1}`]);
 }
 
 function removePlanDay(planId,di){
   const plans=getPlans();
-  const p=plans.find(x=>x.id===planId);if(!p)return;
+  const p=findPlan(plans,planId);if(!p)return;
   const dayLabel=p.days[di]?.label||'this day';
   openModal(`
     <h2>Remove Day</h2>
@@ -1554,14 +1590,14 @@ function removePlanDay(planId,di){
   document.getElementById('modal-cancel-btn').addEventListener('click',closeModal);
   document.getElementById('modal-confirm-remove-day-btn').addEventListener('click',function(){
     const latest=getPlans();
-    const lp=latest.find(x=>x.id===planId);if(lp)lp.days.splice(di,1);
-    set(PLANS_KEY,latest);closeModal();renderPlans();
+    const lp=findPlan(latest,planId);if(lp)lp.days.splice(di,1);
+    set(PLANS_KEY,latest);closeModal();renderPlans([`plan-body-${planId}`]);
   });
 }
 
 function renameDayModal(planId,di){
   const plans=getPlans();
-  const p=plans.find(x=>x.id===planId);if(!p)return;
+  const p=findPlan(plans,planId);if(!p)return;
   openModal(`
     <h2>Rename Day</h2>
     <div class="field"><label>Label</label><input id="m-day-label" value="${escHtml(p.days[di].label)}"></div>
@@ -1573,32 +1609,54 @@ function renameDayModal(planId,di){
 
 function saveDayRename(planId,di){
   const plans=getPlans();
-  const p=plans.find(x=>x.id===planId);if(!p)return;
+  const p=findPlan(plans,planId);if(!p)return;
   p.days[di].label=document.getElementById('m-day-label').value.trim()||p.days[di].label;
-  set(PLANS_KEY,plans);closeModal();renderPlans();
+  set(PLANS_KEY,plans);closeModal();
+  renderPlans([`plan-body-${p.id}`,`plan-day-body-${p.id}-${di}`]);
 }
 
 function addExToPlanDay(planId,di){
   const sel=document.getElementById(`plan-ex-sel-${planId}-${di}`);
   const exId=parseInt(sel.value);if(!exId)return;
   const plans=getPlans();
-  const p=plans.find(x=>x.id===planId);if(!p)return;
+  const p=findPlan(plans,planId);if(!p)return;
   if(p.days[di].exercises.find(e=>e.exId===exId)){toast('Already in day','var(--orange)');return}
-  p.days[di].exercises.push({exId,targetSets:4,targetReps:'10',targetWeight:''});
-  set(PLANS_KEY,plans);renderPlans();
+  p.days[di].exercises.push({exId,targetSets:4,targetReps:'10',targetWeight:'',unit:'kg'});
+  set(PLANS_KEY,plans);
+  // Stay inside this plan+day so the next exercise can be added right away
+  renderPlans([`plan-body-${p.id}`,`plan-day-body-${p.id}-${di}`]);
+  document.getElementById(`plan-ex-sel-${p.id}-${di}`)?.focus();
 }
 
 function removePlanEx(planId,di,ei){
   const plans=getPlans();
-  const p=plans.find(x=>x.id===planId);if(!p)return;
-  p.days[di].exercises.splice(ei,1);set(PLANS_KEY,plans);renderPlans();
+  const p=findPlan(plans,planId);if(!p)return;
+  p.days[di].exercises.splice(ei,1);set(PLANS_KEY,plans);
+  renderPlans([`plan-body-${p.id}`,`plan-day-body-${p.id}-${di}`]);
+}
+
+function movePlanEx(planId,di,ei,dir){
+  const plans=getPlans();
+  const p=findPlan(plans,planId);if(!p)return;
+  const arr=p.days[di]?.exercises;if(!arr)return;
+  const ni=ei+dir;if(ni<0||ni>=arr.length)return;
+  [arr[ei],arr[ni]]=[arr[ni],arr[ei]];
+  set(PLANS_KEY,plans);
+  renderPlans([`plan-body-${p.id}`,`plan-day-body-${p.id}-${di}`]);
 }
 
 function updatePlanEx(planId,di,ei,field,val){
   const plans=getPlans();
-  const p=plans.find(x=>x.id===planId);if(!p)return;
-  p.days[di].exercises[ei][field]=field==='targetSets'?parseInt(val)||1:(field==='targetWeight'?parseFloat(val)||'':val);
+  const p=findPlan(plans,planId);if(!p)return;
+  const pe=p.days[di]?.exercises[ei];if(!pe)return;
+  if(field==='targetSets')      pe.targetSets=parseInt(val)||1;
+  else if(field==='targetWeight')pe.targetWeight=parseFloat(val)||'';
+  else                           pe[field]=val;
+  // Switching to the bodyweight unit clears any leftover target value
+  if(field==='unit'&&val==='none')pe.targetWeight='';
   set(PLANS_KEY,plans);
+  // The unit select swaps the value field in/out, so re-render for that one
+  if(field==='unit')renderPlans([`plan-body-${p.id}`,`plan-day-body-${p.id}-${di}`]);
 }
 
 // ════════════════════════════════════════════════════════
@@ -2714,8 +2772,11 @@ function checkAndUpdatePRs(session){
   if(session.type&&session.type!=='gym'&&session.type!=='crossfit')return[];
   const prs=getPRs();
   const newPRs=[];
-  // Structured exercises (gym logging UI)
-  const structured=(session.exercises||[]).map(ex=>({name:ex.name,sets:ex.sets||[]}));
+  // Structured exercises (gym logging UI). Only kg-based targets count as
+  // volume PRs — seconds/metres/calories aren't comparable as weight×reps.
+  const structured=(session.exercises||[])
+    .filter(ex=>(ex.unit||'kg')==='kg')
+    .map(ex=>({name:ex.name,sets:ex.sets||[]}));
   // Parse the session comment for inline lifts (CrossFit notes etc.)
   const parsed=parseSessionNotes(session.comment||'');
   for(const ex of [...structured,...parsed]){
@@ -2733,7 +2794,8 @@ function checkAndUpdatePRs(session){
   return newPRs;
 }
 
-function isCurrentSetPR(exName,weight,reps){
+function isCurrentSetPR(exName,weight,reps,unit){
+  if((unit||'kg')!=='kg')return false; // only weight-based sets can set a volume PR
   const vol=(parseFloat(weight)||0)*(parseFloat(reps)||0);
   if(vol<=0)return false;
   const pr=getPRs()[exName];
