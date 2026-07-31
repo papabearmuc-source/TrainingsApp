@@ -342,6 +342,93 @@
 
   .icon{width:1em; height:1em; flex:none; vertical-align:-.125em}
 
+  /* ── Anschlagtafel: die aktive Session als Versuchsreihe ──────────────
+     Jeder Satz ist ein Versuch. Die Eingabefelder tragen keine eigene
+     Chrom-Optik — sie sind die Ziffern auf der Tafel. */
+  .attempt-board{background:var(--surf); border:1px solid var(--hair); border-radius:12px;
+                 margin-bottom:14px; overflow:hidden}
+  .ab-head{background:var(--meet); padding:13px 15px 14px; display:flex;
+           justify-content:space-between; align-items:flex-start; gap:12px}
+  .ab-kind{font-family:var(--fm); font-size:9.5px; letter-spacing:.2em;
+           text-transform:uppercase; color:#FAE1E5}
+  .ab-name{font-size:25px; font-weight:850; font-stretch:80%; letter-spacing:-.035em;
+           line-height:1.06; margin-top:3px; color:#fff; word-break:break-word}
+  .ab-group{font-family:var(--fm); font-size:9.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:#FAE1E5; margin-top:4px}
+  .ab-pr{display:inline-flex; align-items:center; gap:4px; vertical-align:middle;
+         background:#fff; color:var(--meet); border-radius:4px; padding:2px 7px;
+         font-family:var(--fm); font-size:9.5px; font-weight:700;
+         letter-spacing:.1em; text-transform:uppercase; margin-left:8px}
+  .ab-acts{display:flex; gap:5px; flex:none}
+  .ab-acts button{background:rgba(255,255,255,.16); border:none; border-radius:5px;
+                  color:#fff; cursor:pointer; font-family:var(--fd); font-size:12px;
+                  font-weight:700; padding:5px 9px; line-height:1; transition:background-color .14s}
+  .ab-acts button:hover{background:rgba(255,255,255,.3)}
+  .ab-acts button:focus-visible{outline:2px solid #fff; outline-offset:1px}
+
+  .ab-meta{padding:11px 15px 0; display:flex; flex-direction:column; gap:7px}
+  .ab-last{font-family:var(--fm); font-size:10.5px; color:var(--fg-2);
+           letter-spacing:.02em; display:flex; align-items:center; gap:6px}
+  .ab-note{font-size:12.5px; line-height:1.45; color:var(--fg);
+           padding:8px 11px; background:var(--surf-2); border-radius:6px;
+           display:flex; gap:8px; align-items:flex-start}
+  .ab-note svg{color:var(--accent-ink); margin-top:2px}
+  .ab-note .when{font-family:var(--fm); font-size:10px; color:var(--fg-2); white-space:nowrap}
+
+  .ab-exnote{padding:11px 15px 0}
+  .ab-exnote input{width:100%; background:var(--ground); border:1px solid var(--hair);
+                   border-radius:7px; color:var(--fg); font-family:var(--fd);
+                   font-size:13px; padding:7px 10px; outline:none; transition:border-color .14s}
+  .ab-exnote input:focus{border-color:var(--meet)}
+
+  .ab-scale{display:flex; justify-content:space-between; align-items:baseline;
+            padding:14px 15px 6px; font-family:var(--fm); font-size:9px;
+            letter-spacing:.16em; text-transform:uppercase; color:var(--fg-2)}
+
+  .ab-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:2px;
+           background:var(--line); padding:2px}
+  .att{background:var(--ground); padding:8px 3px 7px; text-align:center;
+       display:flex; flex-direction:column; align-items:center; gap:1px;
+       position:relative; min-height:66px; transition:background-color .14s}
+  .att.done{background:var(--surf-2)}
+  .att.live{background:#fff; box-shadow:inset 0 0 0 2px var(--meet)}
+  .att input{background:none; border:none; outline:none; text-align:center;
+             font-family:var(--fd); color:var(--fg); width:100%; padding:0;
+             -moz-appearance:textfield}
+  .att input::-webkit-outer-spin-button,.att input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .att .kg{font-size:21px; font-weight:850; letter-spacing:-.05em; line-height:1.05;
+           font-variant-numeric:tabular-nums}
+  .att .rep{font-family:var(--fm); font-size:10px; color:var(--fg-2); letter-spacing:.06em; margin-top:3px}
+  .att.done .kg{color:var(--fg-2)}
+  .att.live input{color:#14140F}
+  .att.live .kg{color:var(--meet)}
+  .att.live .rep{color:var(--meet)}
+  .att.live .note{color:#55534A}
+  .att.live input::placeholder{color:#8A887E}
+  .att input::placeholder{color:var(--fg-2); opacity:.55}
+  .att .kg:focus,.att .rep:focus{box-shadow:0 0 0 2px var(--meet); border-radius:3px}
+  .att-no{position:absolute; top:3px; left:5px; font-family:var(--fm); font-size:8px;
+          color:var(--fg-2); letter-spacing:.08em}
+  .att.live .att-no{color:var(--meet)}
+  .att-del{position:absolute; top:2px; right:2px; background:none; border:none;
+           color:var(--fg-2); cursor:pointer; padding:3px; line-height:0;
+           opacity:0; transition:opacity .14s}
+  .att:hover .att-del,.att:focus-within .att-del{opacity:.75}
+  .att-del:hover{opacity:1 !important; color:var(--meet)}
+  .att .note{display:none; font-family:var(--fd); font-size:10.5px;
+             color:var(--fg-2); margin-top:4px}
+  .att:focus-within .note,.att.has-note .note{display:block}
+  .att.has-note::after{content:""; position:absolute; bottom:3px; right:4px;
+                       width:4px; height:4px; border-radius:50%; background:var(--accent-ink)}
+  .att:focus-within.has-note::after{display:none}
+
+  .ab-add{padding:12px 15px 14px}
+
+  @media(max-width:560px){
+    .ab-grid{grid-template-columns:repeat(3,1fr)}
+    .ab-name{font-size:22px}
+  }
+
   @media(max-width:600px){
     .goals-grid{grid-template-columns:1fr 1fr}
     .page{padding:16px 12px 48px}
@@ -1389,58 +1476,57 @@ function addExToSession(){
 function renderSessionExercises(){
   syncSessionFromDOM();
   const container=document.getElementById('session-exercises');
-  if(!currentSession.exercises.length){container.innerHTML='<div class="empty-state" style="padding:20px">No exercises added yet.</div>';return}
+  if(!currentSession.exercises.length){container.innerHTML='<div class="empty-state" style="padding:22px">Noch keine Uebung gewaehlt.</div>';return}
   container.innerHTML=currentSession.exercises.map((ex,ei)=>{
+    const unit=planUnitLabel(ex.unit||'kg');
+    const filled=s=>String(s.reps).trim()!==''&&String(s.weight).trim()!=='';
+    const done=ex.sets.filter(filled).length;
+    const live=ex.sets.findIndex(s=>!filled(s));
     const lastEx=getLastExerciseData(ex.name);
-    const lastHint=lastEx?`<div style="color:var(--text2);font-size:11px;margin-top:3px;letter-spacing:.1px">${ico('return',11)} Last: ${lastEx}</div>`:'';
     const lastNote=getLastExerciseComment(ex.name);
-    const lastNoteHint=lastNote?`<div style="color:var(--yellow);font-size:11px;margin-top:5px;padding:5px 9px;background:color-mix(in srgb, var(--yellow) 8%, transparent);border-left:2px solid var(--yellow);border-radius:4px;line-height:1.4">💭 <span style="color:var(--text)">${escHtml(lastNote.text)}</span> <span style="color:var(--text2);font-style:italic;margin-left:4px">(${lastNote.date})</span></div>`:'';
     const hasPR=ex.sets.some(s=>isCurrentSetPR(ex.name,s.weight,s.reps,ex.unit));
-    return`
-    <div class="session-exercise" id="sex-${ei}">
-      <div class="session-ex-header">
+    return `
+    <div class="attempt-board" id="sex-${ei}">
+      <div class="ab-head">
         <div style="flex:1;min-width:0">
-          <span class="session-ex-name">${ex.name}</span>${hasPR?` <span style="background:color-mix(in srgb, var(--yellow) 13%, transparent);border:1px solid color-mix(in srgb, var(--yellow) 33%, transparent);border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;color:var(--yellow);vertical-align:middle">🏆 PR</span>`:''}
-          <span class="session-ex-group">${ex.group}</span>
-          ${lastHint}
-          ${lastNoteHint}
+          <div class="ab-kind">Versuch ${Math.min(done+1,ex.sets.length)} / ${ex.sets.length}</div>
+          <div class="ab-name">${escHtml(ex.name)}${hasPR?`<span class="ab-pr">${ico('trophy',11)} PR</span>`:''}</div>
+          ${ex.group?`<div class="ab-group">${escHtml(ex.group)}</div>`:''}
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-secondary btn-sm" onclick="moveEx(${ei},-1)" title="Move up">↑</button>
-          <button class="btn btn-secondary btn-sm" onclick="moveEx(${ei},1)" title="Move down">↓</button>
-          <button class="btn btn-danger btn-sm" onclick="removeEx(${ei})">Remove</button>
+        <div class="ab-acts">
+          <button onclick="moveEx(${ei},-1)" title="Nach oben">&uarr;</button>
+          <button onclick="moveEx(${ei},1)" title="Nach unten">&darr;</button>
+          <button onclick="removeEx(${ei})" title="Uebung entfernen">${ico('close',12)}</button>
         </div>
       </div>
-      <div class="session-ex-body">
-        <div class="ex-comment-row">
-          <input class="ex-comment-input" data-ei="${ei}" type="text" placeholder="Exercise note (e.g. used hook grip, slight elbow pain…)" value="${escHtml(ex.comment)}" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:6px 10px;outline:none" oninput="syncExComment(${ei},this.value)">
-        </div>
-        <table class="sets-table">
-          <thead><tr>
-            <th>#</th>
-            <th class="col-reps">Reps</th>
-            <th class="col-weight">${planUnitLabel(ex.unit||'kg')}</th>
-            <th class="col-comment">Note</th>
-            <th class="col-del"></th>
-          </tr></thead>
-          <tbody id="sets-${ei}">
-          ${ex.sets.map((s,si)=>setRowHTML(ei,si,s)).join('')}
-          </tbody>
-        </table>
-        <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="addSet(${ei})">+ Set</button>
+      ${(lastEx||lastNote)?`<div class="ab-meta">
+        ${lastEx?`<div class="ab-last">${ico('return',11)} Zuletzt: ${lastEx}</div>`:''}
+        ${lastNote?`<div class="ab-note">${ico('note',12)}<span style="flex:1">${escHtml(lastNote.text)}</span><span class="when">${lastNote.date}</span></div>`:''}
+      </div>`:''}
+      <div class="ab-exnote">
+        <input class="ex-comment-input" data-ei="${ei}" type="text" placeholder="Notiz zur Uebung — z.B. unsauber ab der 8. Wdh" value="${escHtml(ex.comment)}" oninput="syncExComment(${ei},this.value)">
+      </div>
+      <div class="ab-scale"><span>Versuche</span><span>${escHtml(unit)} &times; Wdh</span></div>
+      <div class="ab-grid" id="sets-${ei}">
+        ${ex.sets.map((s,si)=>setRowHTML(ei,si,s,si===live)).join('')}
+      </div>
+      <div class="ab-add">
+        <button class="btn btn-secondary btn-sm" onclick="addSet(${ei})">${ico('plus',11)} Versuch</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function setRowHTML(ei,si,s){
-  return `<tr id="set-${ei}-${si}">
-    <td class="set-num">${si+1}</td>
-    <td class="col-reps"><input type="number" min="0" step="1" placeholder="—" value="${s.reps}" oninput="syncSet(${ei},${si},'reps',this.value)"></td>
-    <td class="col-weight"><input type="number" min="0" step="0.5" placeholder="—" value="${s.weight}" oninput="syncSet(${ei},${si},'weight',this.value)"></td>
-    <td class="col-comment"><input type="text" placeholder="note…" value="${escHtml(s.comment)}" oninput="syncSet(${ei},${si},'comment',this.value)"></td>
-    <td class="col-del"><button class="btn-ghost" onclick="removeSet(${ei},${si})" title="Remove set"><svg class="icon" style="width:13px;height:13px" aria-hidden="true"><use href="#i-close"></use></svg></button></td>
-  </tr>`;
+function setRowHTML(ei,si,s,isLive){
+  const done=String(s.reps).trim()!==''&&String(s.weight).trim()!=='';
+  const cls='att'+(done?' done':'')+(isLive?' live':'')+(s.comment?' has-note':'');
+  return `<div class="${cls}" id="set-${ei}-${si}">
+    <span class="att-no">${si+1}</span>
+    <button class="att-del" onclick="removeSet(${ei},${si})" title="Versuch entfernen">${ico('close',10)}</button>
+    <input class="kg"  type="number" min="0" step="0.5" inputmode="decimal" placeholder="&mdash;" value="${s.weight}" oninput="syncSet(${ei},${si},'weight',this.value)" aria-label="Gewicht, Versuch ${si+1}">
+    <input class="rep" type="number" min="0" step="1"   inputmode="numeric" placeholder="&mdash;" value="${s.reps}"   oninput="syncSet(${ei},${si},'reps',this.value)"   aria-label="Wiederholungen, Versuch ${si+1}">
+    <input class="note" type="text" placeholder="Notiz" value="${escHtml(s.comment)}" oninput="syncSet(${ei},${si},'comment',this.value)" aria-label="Notiz, Versuch ${si+1}">
+  </div>`;
 }
 
 function syncSessionFromDOM(){
@@ -1457,18 +1543,33 @@ function syncSessionFromDOM(){
 function syncExComment(ei,val){currentSession.exercises[ei].comment=val;autoSaveActive();}
 function syncSet(ei,si,field,val){
   if(currentSession.exercises[ei]?.sets[si])currentSession.exercises[ei].sets[si][field]=val;
+  refreshBoard(ei);
   autoSaveActive();
+}
+
+// Tafelzustand nachziehen, ohne neu zu rendern — sonst verliert das Feld beim
+// Tippen den Fokus. Markiert erledigte Versuche und rueckt das weisse Licht weiter.
+function refreshBoard(ei){
+  const ex=currentSession.exercises[ei]; if(!ex)return;
+  const board=document.getElementById('sex-'+ei); if(!board)return;
+  const filled=s=>String(s.reps).trim()!==''&&String(s.weight).trim()!=='';
+  const live=ex.sets.findIndex(s=>!filled(s));
+  ex.sets.forEach((s,si)=>{
+    const cell=document.getElementById('set-'+ei+'-'+si); if(!cell)return;
+    cell.classList.toggle('done',filled(s));
+    cell.classList.toggle('live',si===live);
+    cell.classList.toggle('has-note',!!String(s.comment||'').trim());
+  });
+  const kind=board.querySelector('.ab-kind');
+  if(kind)kind.textContent='Versuch '+Math.min(ex.sets.filter(filled).length+1,ex.sets.length)+' / '+ex.sets.length;
 }
 
 function addSet(ei){
   syncSessionFromDOM();
   currentSession.exercises[ei].sets.push({reps:'',weight:'',comment:''});
-  const tbody=document.getElementById('sets-'+ei);
+  renderSessionExercises();
   const si=currentSession.exercises[ei].sets.length-1;
-  const s=currentSession.exercises[ei].sets[si];
-  tbody.insertAdjacentHTML('beforeend',setRowHTML(ei,si,s));
-  // renumber
-  renumberSets(ei);
+  document.querySelector('#set-'+ei+'-'+si+' .kg')?.focus();
 }
 
 function removeSet(ei,si){
@@ -1491,10 +1592,7 @@ function moveEx(ei,dir){
   renderSessionExercises();
 }
 
-function renumberSets(ei){
-  const rows=document.querySelectorAll(`#sets-${ei} tr`);
-  rows.forEach((r,i)=>{ const n=r.querySelector('.set-num'); if(n)n.textContent=i+1; });
-}
+function renumberSets(){/* Nummern kommen jetzt aus dem Rendering */}
 
 function clearSession(){
   openModal(`
